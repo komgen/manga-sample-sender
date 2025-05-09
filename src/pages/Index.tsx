@@ -3,7 +3,7 @@ import { useState } from "react";
 import { CartProvider } from "@/contexts/CartContext";
 import { ProductCard } from "@/components/ProductCard";
 import { CartDrawer } from "@/components/CartDrawer";
-import { CheckoutForm, CheckoutFormData } from "@/components/CheckoutForm";
+import { ConfirmationScreen } from "@/components/ConfirmationScreen";
 import { ProductFilter } from "@/components/ProductFilter";
 import { SubmissionComplete } from "@/components/SubmissionComplete";
 import { products } from "@/data/products";
@@ -13,7 +13,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/components/ui/use-toast";
 
 // Define the steps of the application flow
-type Step = "products" | "checkout" | "complete";
+type Step = "products" | "confirmation" | "complete";
 
 function MainContent() {
   const [step, setStep] = useState<Step>("products");
@@ -38,17 +38,27 @@ function MainContent() {
       return;
     }
     
-    // Skip cart confirmation and go directly to checkout form
-    setStep("checkout");
+    setStep("confirmation");
   };
 
   const handleBackToProducts = () => {
     setStep("products");
   };
 
-  const handleFormSubmit = async (formData: CheckoutFormData) => {
+  const handleSubmit = async () => {
     try {
-      const result = await submitToSpreadsheet(formData, items);
+      // Since we're not collecting any form data, just submit the cart items
+      const emptyFormData = {
+        authorName: "",
+        email: "",
+        mangaTitle: "",
+        postalCode: "",
+        address: "",
+        phoneNumber: "",
+        notes: ""
+      };
+      
+      const result = await submitToSpreadsheet(emptyFormData, items);
       
       if (result.success) {
         toast({
@@ -114,8 +124,8 @@ function MainContent() {
         </div>
       )}
       
-      {step === "checkout" && (
-        <CheckoutForm onBack={handleBackToProducts} onSubmit={handleFormSubmit} />
+      {step === "confirmation" && (
+        <ConfirmationScreen onBack={handleBackToProducts} onSubmit={handleSubmit} />
       )}
       
       {step === "complete" && (
