@@ -29,6 +29,16 @@ function MainContent() {
     : products.filter(product => product.type === selectedType);
 
   const handleCheckout = () => {
+    if (items.length === 0) {
+      toast({
+        title: "エラー",
+        description: "カートにアイテムがありません",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Skip cart confirmation and go directly to checkout form
     setStep("checkout");
   };
 

@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { MinusIcon, PlusIcon, ShoppingCart, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CartDrawerProps {
   onCheckout: () => void;
@@ -22,6 +23,20 @@ interface CartDrawerProps {
 
 export function CartDrawer({ onCheckout }: CartDrawerProps) {
   const { items, removeFromCart, updateQuantity, getCartTotal } = useCart();
+  const { toast } = useToast();
+
+  const handleCheckout = () => {
+    if (items.length === 0) {
+      toast({
+        title: "エラー",
+        description: "カートにアイテムがありません",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    onCheckout();
+  };
 
   return (
     <Drawer>
@@ -122,7 +137,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
           </div>
           <DrawerFooter>
             <Button 
-              onClick={onCheckout} 
+              onClick={handleCheckout} 
               disabled={items.length === 0}
               className="bg-manga-primary hover:bg-manga-secondary"
             >
