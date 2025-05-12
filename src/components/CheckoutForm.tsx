@@ -60,51 +60,18 @@ export function CheckoutForm({ onBack, onSubmit }: CheckoutFormProps) {
     },
   });
 
-const handleSubmit = async () => {
-    console.log("送信を試みます");
-  if (items.length === 0) {
-    toast({
-      title: "エラー",
-      description: "カートにアイテムがありません",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  const simplifiedItems = items.map((item) => ({
-    商品名: item.product.name,
-    サイズ: item.size || "",
-    色: item.color || "",
-    数量: item.quantity || 0,
-  }));
-
-  try {
-    const res = await fetch("https://script.google.com/macros/s/AKfycbwA6A6GcApOYaxjIo40jDeCL4V9qNKvjWe0E9m2jzawVt30-uMtcbEagYuZ8DDkPo_F/exec", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(simplifiedItems),
-    });
-
-    if (!res.ok) {
-      throw new Error("送信エラー");
+  const handleSubmit = (data: CheckoutFormData) => {
+    if (items.length === 0) {
+      toast({
+        title: "エラー",
+        description: "カートにアイテムがありません",
+        variant: "destructive",
+      });
+      return;
     }
 
-    toast({
-      title: "送信成功",
-      description: "アイテム情報を送信しました！",
-    });
-  } catch (error) {
-    toast({
-      title: "送信失敗",
-      description: "送信中にエラーが発生しました。",
-      variant: "destructive",
-    });
-    console.error("送信失敗:", error);
-  }
-};
-
+    onSubmit(data);
+  };
 
   return (
     <div className="max-w-2xl mx-auto p-6">
