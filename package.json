@@ -82,3 +82,9 @@
     "vite": "^5.4.1"
   }
 }
+"dependencies": {
+  ...
+  "zod": "^3.23.8",
+  "google-spreadsheet": "^3.3.0"
+}
+
