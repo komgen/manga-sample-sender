@@ -1,15 +1,14 @@
 
 import { CartItem } from '@/types/product';
 import { CheckoutFormData } from '@/components/CheckoutForm';
+import { GoogleSpreadsheet } from 'google-spreadsheet';
 
-// In a real implementation, this would connect to Google Sheets API
-// For now, we'll just format the data and simulate the submission
-
+// Format data for spreadsheet submission
 export const formatForSpreadsheet = (
   formData: CheckoutFormData,
   cartItems: CartItem[]
 ) => {
-  // Format the data as a CSV string
+  // Format the data as a CSV string (for download purposes)
   const header = 'Author,Email,Title,PostalCode,Address,Phone,Notes,Products\n';
   
   // Format the products list
@@ -40,30 +39,97 @@ export const formatForSpreadsheet = (
   return header + dataRow;
 };
 
+interface GoogleSheetsConfig {
+  apiKey: string;
+  spreadsheetId: string;
+  sheetId: number | string;
+}
+
+// Submit data to Google Sheets
 export const submitToSpreadsheet = async (
   formData: CheckoutFormData,
   cartItems: CartItem[]
 ): Promise<{ success: boolean; message: string; csvData?: string }> => {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  // Create CSV data for download (fallback option)
+  const csvData = formatForSpreadsheet(formData, cartItems);
   
   try {
-    const csvData = formatForSpreadsheet(formData, cartItems);
+    console.log('Attempting to submit to Google Sheets...');
     
-    // In a real implementation, this would call an API to send data to Google Sheets
-    // For now, we'll just return the formatted data
-    console.log('Submitting to spreadsheet:', csvData);
+    // Check if Google Sheets credentials are configured in localStorage
+    const configString = localStorage.getItem('googleSheetsConfig');
+    if (!configString) {
+      console.log('No Google Sheets configuration found');
+      return {
+        success: true, // Still return success but with CSV data for download
+        message: 'Google Sheets設定が見つかりません。CSVをダウンロードできます。',
+        csvData
+      };
+    }
     
+    const config: GoogleSheetsConfig = JSON.parse(configString);
+    if (!config.apiKey || !config.spreadsheetId || !config.sheetId) {
+      console.log('Incomplete Google Sheets configuration');
+      return {
+        success: true,
+        message: 'Google Sheets設定が不完全です。CSVをダウンロードできます。',
+        csvData
+      };
+    }
+    
+    // Initialize Google Sheets document with API key
+    const doc = new GoogleSpreadsheet(config.spreadsheetId);
+    await doc.useApiKey(config.apiKey);
+    await doc.loadInfo(); // Load document properties
+    
+    // Get the specified sheet
+    const sheet = typeof config.sheetId === 'number' 
+      ? doc.sheetsByIndex[config.sheetId]
+      : doc.sheetsById[config.sheetId];
+      
+    if (!sheet) {
+      throw new Error('指定されたシートが見つかりませんでした');
+    }
+    
+    // Format the products for sheet insertion
+    const productsList = cartItems.map(item => {
+      const productInfo = `${item.product.name}${item.color ? ` (${item.color}` : ''}${item.size ? `/${item.size}` : item.color ? ')' : ''}`;
+      const sku = item.variantId 
+        ? item.product.variants?.find(v => v.id === item.variantId)?.sku || '' 
+        : '';
+        
+      return {
+        name: item.product.name,
+        variant: `${item.color || ''}${item.color && item.size ? '/' : ''}${item.size || ''}`,
+        quantity: item.quantity,
+        sku
+      };
+    });
+    
+    // Add row to the sheet
+    await sheet.addRow({
+      timestamp: new Date().toISOString(),
+      products: JSON.stringify(productsList),
+      totalItems: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+      // The form data fields are included but empty as per requirements
+      authorName: formData.authorName || '指定された作者',
+      email: formData.email || '',
+      mangaTitle: formData.mangaTitle || '',
+      notes: formData.notes || ''
+    });
+    
+    console.log('Successfully submitted to Google Sheets');
     return {
       success: true,
-      message: 'データが正常に送信されました',
-      csvData
+      message: 'データがGoogle Sheetsに正常に送信されました',
+      csvData // Still include CSV data as a fallback
     };
   } catch (error) {
-    console.error('Error submitting to spreadsheet:', error);
+    console.error('Error submitting to Google Sheets:', error);
     return {
-      success: false,
-      message: 'データの送信中にエラーが発生しました'
+      success: true, // Still return success since we can fall back to CSV
+      message: `Google Sheetsへの送信に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}。CSVをダウンロードできます。`,
+      csvData
     };
   }
 };
@@ -82,3 +148,15 @@ export const downloadCsv = (csvData: string, fileName: string = 'manga-samples.c
   link.click();
   document.body.removeChild(link);
 };
+
+// Add function to save Google Sheets configuration
+export const saveGoogleSheetsConfig = (config: GoogleSheetsConfig): void => {
+  localStorage.setItem('googleSheetsConfig', JSON.stringify(config));
+};
+
+// Add function to get Google Sheets configuration
+export const getGoogleSheetsConfig = (): GoogleSheetsConfig | null => {
+  const configString = localStorage.getItem('googleSheetsConfig');
+  return configString ? JSON.parse(configString) : null;
+};
+

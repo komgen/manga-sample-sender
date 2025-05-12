@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { GoogleSheetsConfig } from "@/components/GoogleSheetsConfig";
 
 interface ConfirmationScreenProps {
   onBack: () => void;
@@ -35,10 +36,13 @@ export function ConfirmationScreen({ onBack, onSubmit }: ConfirmationScreenProps
         </div>
       </div>
 
-      <div className="flex justify-between pt-4">
-        <Button type="button" variant="outline" onClick={onBack}>
-          戻る
-        </Button>
+      <div className="flex items-center justify-between pt-4">
+        <div className="flex items-center space-x-2">
+          <Button type="button" variant="outline" onClick={onBack}>
+            戻る
+          </Button>
+          <GoogleSheetsConfig />
+        </div>
         <Button onClick={onSubmit} className="bg-manga-primary hover:bg-manga-secondary">
           送信する
         </Button>
