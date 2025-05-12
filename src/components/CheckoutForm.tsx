@@ -61,6 +61,7 @@ export function CheckoutForm({ onBack, onSubmit }: CheckoutFormProps) {
   });
 
 const handleSubmit = async () => {
+    console.log("送信を試みます");
   if (items.length === 0) {
     toast({
       title: "エラー",
