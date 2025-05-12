@@ -1,7 +1,6 @@
 
 import { CartItem } from '@/types/product';
 import { CheckoutFormData } from '@/components/CheckoutForm';
-import { GoogleSpreadsheet } from 'google-spreadsheet';
 
 // Format data for spreadsheet submission
 export const formatForSpreadsheet = (
@@ -39,13 +38,11 @@ export const formatForSpreadsheet = (
   return header + dataRow;
 };
 
-interface GoogleSheetsConfig {
-  apiKey: string;
-  spreadsheetId: string;
-  sheetId: number | string;
+interface GASConfig {
+  webhookUrl: string;
 }
 
-// Submit data to Google Sheets
+// Submit data to Google Apps Script webhook
 export const submitToSpreadsheet = async (
   formData: CheckoutFormData,
   cartItems: CartItem[]
@@ -54,44 +51,30 @@ export const submitToSpreadsheet = async (
   const csvData = formatForSpreadsheet(formData, cartItems);
   
   try {
-    console.log('Attempting to submit to Google Sheets...');
+    console.log('Attempting to submit to Google Apps Script...');
     
-    // Check if Google Sheets credentials are configured in localStorage
+    // Check if Google Apps Script webhook URL is configured in localStorage
     const configString = localStorage.getItem('googleSheetsConfig');
     if (!configString) {
-      console.log('No Google Sheets configuration found');
+      console.log('No Google Apps Script configuration found');
       return {
         success: true, // Still return success but with CSV data for download
-        message: 'Google Sheets設定が見つかりません。CSVをダウンロードできます。',
+        message: 'Google Apps Script設定が見つかりません。CSVをダウンロードできます。',
         csvData
       };
     }
     
-    const config: GoogleSheetsConfig = JSON.parse(configString);
-    if (!config.apiKey || !config.spreadsheetId || !config.sheetId) {
-      console.log('Incomplete Google Sheets configuration');
+    const config: GASConfig = JSON.parse(configString);
+    if (!config.webhookUrl) {
+      console.log('Incomplete Google Apps Script configuration');
       return {
         success: true,
-        message: 'Google Sheets設定が不完全です。CSVをダウンロードできます。',
+        message: 'Google Apps Script設定が不完全です。CSVをダウンロードできます。',
         csvData
       };
     }
     
-    // Initialize Google Sheets document with API key
-    const doc = new GoogleSpreadsheet(config.spreadsheetId);
-    await doc.useApiKey(config.apiKey);
-    await doc.loadInfo(); // Load document properties
-    
-    // Get the specified sheet
-    const sheet = typeof config.sheetId === 'number' 
-      ? doc.sheetsByIndex[config.sheetId]
-      : doc.sheetsById[config.sheetId];
-      
-    if (!sheet) {
-      throw new Error('指定されたシートが見つかりませんでした');
-    }
-    
-    // Format the products for sheet insertion
+    // Format the products for submission
     const productsList = cartItems.map(item => {
       const productInfo = `${item.product.name}${item.color ? ` (${item.color}` : ''}${item.size ? `/${item.size}` : item.color ? ')' : ''}`;
       const sku = item.variantId 
@@ -106,26 +89,43 @@ export const submitToSpreadsheet = async (
       };
     });
     
-    // Add row to the sheet
-    await sheet.addRow({
+    // Prepare data payload for the webhook
+    const payload = {
       timestamp: new Date().toISOString(),
-      products: JSON.stringify(productsList),
+      products: productsList,
       totalItems: cartItems.reduce((sum, item) => sum + item.quantity, 0),
-      // The form data fields are included but empty as per requirements
       authorName: formData.authorName || '指定された作者',
       email: formData.email || '',
       mangaTitle: formData.mangaTitle || '',
+      postalCode: formData.postalCode || '',
+      address: formData.address || '',
+      phoneNumber: formData.phoneNumber || '',
       notes: formData.notes || ''
+    };
+    
+    // Send data to Google Apps Script webhook
+    const response = await fetch(config.webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     });
     
-    console.log('Successfully submitted to Google Sheets');
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    console.log('Successfully submitted to Google Apps Script');
     return {
       success: true,
       message: 'データがGoogle Sheetsに正常に送信されました',
       csvData // Still include CSV data as a fallback
     };
   } catch (error) {
-    console.error('Error submitting to Google Sheets:', error);
+    console.error('Error submitting to Google Apps Script:', error);
     return {
       success: true, // Still return success since we can fall back to CSV
       message: `Google Sheetsへの送信に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}。CSVをダウンロードできます。`,
@@ -149,14 +149,13 @@ export const downloadCsv = (csvData: string, fileName: string = 'manga-samples.c
   document.body.removeChild(link);
 };
 
-// Add function to save Google Sheets configuration
-export const saveGoogleSheetsConfig = (config: GoogleSheetsConfig): void => {
+// Add function to save Google Apps Script configuration
+export const saveGoogleSheetsConfig = (config: GASConfig): void => {
   localStorage.setItem('googleSheetsConfig', JSON.stringify(config));
 };
 
-// Add function to get Google Sheets configuration
-export const getGoogleSheetsConfig = (): GoogleSheetsConfig | null => {
+// Add function to get Google Apps Script configuration
+export const getGoogleSheetsConfig = (): GASConfig | null => {
   const configString = localStorage.getItem('googleSheetsConfig');
   return configString ? JSON.parse(configString) : null;
 };
-
