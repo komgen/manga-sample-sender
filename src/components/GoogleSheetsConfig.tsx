@@ -64,7 +64,12 @@ export function GoogleSheetsConfig() {
         <DialogHeader>
           <DialogTitle>Google Apps Script連携設定</DialogTitle>
           <DialogDescription>
-            サンプル注文データを送信するためのGoogle Apps Script WebhookのURLを設定します。
+            Google Apps ScriptのWeb App URLを設定します。
+            <ul className="mt-2 text-xs list-disc pl-5 space-y-1">
+              <li>Webhook URL: Code.gsスクリプトのWeb App URL（注文データをシートに送信する）</li>
+              <li>Fetch URL: ProductAPI.gsスクリプトのWeb App URL（商品データを取得する）</li>
+              <li>JSONP対応が必要: 両方のスクリプトでdoGet関数に<code>var callback = request.parameter.callback;</code>が必要です</li>
+            </ul>
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
