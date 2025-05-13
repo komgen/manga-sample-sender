@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getGoogleSheetsConfig, saveGoogleSheetsConfig } from "@/utils/spreadsheet";
+import { saveGASConfig } from "@/utils/productApi";
 import { useToast } from "@/components/ui/use-toast";
 
 export function GoogleSheetsConfig() {
   const [open, setOpen] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [fetchUrl, setFetchUrl] = useState("");
   const { toast } = useToast();
 
   // Load existing configuration on open
@@ -18,6 +20,7 @@ export function GoogleSheetsConfig() {
       const config = getGoogleSheetsConfig();
       if (config) {
         setWebhookUrl(config.webhookUrl || "");
+        setFetchUrl(config.fetchUrl || "");
       }
     }
   }, [open]);
@@ -34,9 +37,13 @@ export function GoogleSheetsConfig() {
     }
 
     // Save configuration
-    saveGoogleSheetsConfig({
-      webhookUrl
-    });
+    const config = {
+      webhookUrl,
+      fetchUrl
+    };
+    
+    saveGoogleSheetsConfig(config);
+    saveGASConfig(config);
 
     toast({
       title: "保存完了",
@@ -69,6 +76,18 @@ export function GoogleSheetsConfig() {
               id="webhook-url"
               value={webhookUrl}
               onChange={(e) => setWebhookUrl(e.target.value)}
+              className="col-span-3"
+              placeholder="https://script.google.com/macros/s/..."
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="fetch-url" className="text-right">
+              Fetch URL
+            </Label>
+            <Input
+              id="fetch-url"
+              value={fetchUrl}
+              onChange={(e) => setFetchUrl(e.target.value)}
               className="col-span-3"
               placeholder="https://script.google.com/macros/s/..."
             />

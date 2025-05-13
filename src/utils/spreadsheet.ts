@@ -40,6 +40,7 @@ export const formatForSpreadsheet = (
 
 interface GASConfig {
   webhookUrl: string;
+  fetchUrl?: string;
 }
 
 // Submit data to Google Apps Script webhook
@@ -110,6 +111,7 @@ export const submitToSpreadsheet = async (
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
+      mode: 'cors' // Enable CORS for the request
     });
     
     if (!response.ok) {

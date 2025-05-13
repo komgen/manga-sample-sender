@@ -44,6 +44,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       };
       
       setItems(updatedItems);
+      
+      toast({
+        title: "数量を更新しました",
+        description: `${product.name} ${color ? `(${color}` : ''}${size ? `/${size})` : color ? ')' : ''} を${item.quantity + 1}点に更新しました`,
+      });
     } else {
       setItems([
         ...items, 
@@ -56,19 +61,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
           size
         }
       ]);
+      
+      toast({
+        title: "カートに追加しました",
+        description: `${product.name} ${color ? `(${color}` : ''}${size ? `/${size})` : color ? ')' : ''} をカートに追加しました`,
+      });
     }
-
-    toast({
-      title: "カートに追加しました",
-      description: `${product.name} ${color ? `(${color}` : ''}${size ? `/${size})` : color ? ')' : ''} をカートに追加しました`,
-    });
   };
 
   const removeFromCart = (productId: string, variantId?: string) => {
-    setItems(items.filter(item => 
-      !(item.productId === productId && 
-        ((!variantId && !item.variantId) || item.variantId === variantId))
-    ));
+    const itemToRemove = items.find(item => 
+      item.productId === productId && 
+      ((!variantId && !item.variantId) || item.variantId === variantId)
+    );
+    
+    if (itemToRemove) {
+      const productName = `${itemToRemove.product.name} ${itemToRemove.color ? `(${itemToRemove.color}` : ''}${itemToRemove.size ? `/${itemToRemove.size})` : itemToRemove.color ? ')' : ''}`;
+      
+      setItems(items.filter(item => 
+        !(item.productId === productId && 
+          ((!variantId && !item.variantId) || item.variantId === variantId))
+      ));
+      
+      toast({
+        title: "カートから削除しました",
+        description: `${productName} をカートから削除しました`,
+      });
+    }
   };
 
   const updateQuantity = (productId: string, variantId: string | undefined, quantity: number) => {
@@ -86,15 +105,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setItems(items.map(item => {
-      if (
-        item.productId === productId && 
-        ((!variantId && !item.variantId) || item.variantId === variantId)
-      ) {
-        return { ...item, quantity };
-      }
-      return item;
-    }));
+    const itemToUpdate = items.find(item => 
+      item.productId === productId && 
+      ((!variantId && !item.variantId) || item.variantId === variantId)
+    );
+    
+    if (itemToUpdate) {
+      const productName = `${itemToUpdate.product.name} ${itemToUpdate.color ? `(${itemToUpdate.color}` : ''}${itemToUpdate.size ? `/${itemToUpdate.size})` : itemToUpdate.color ? ')' : ''}`;
+      
+      setItems(items.map(item => {
+        if (
+          item.productId === productId && 
+          ((!variantId && !item.variantId) || item.variantId === variantId)
+        ) {
+          return { ...item, quantity };
+        }
+        return item;
+      }));
+      
+      toast({
+        title: "数量を更新しました",
+        description: `${productName} を${quantity}点に更新しました`,
+      });
+    }
   };
 
   const clearCart = () => {

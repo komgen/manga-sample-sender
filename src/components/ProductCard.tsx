@@ -18,13 +18,14 @@ import {
 } from "@/components/ui/select";
 import { Product } from "@/types/product";
 import { useCart } from "@/contexts/CartContext";
+import { MinusCircle, PlusCircle } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { addToCart } = useCart();
+  const { addToCart, removeFromCart, updateQuantity, items } = useCart();
   const [selectedColor, setSelectedColor] = useState<string | undefined>(
     product.variants && product.variants.length > 0 && product.variants[0].color
       ? product.variants[0].color
@@ -63,10 +64,31 @@ export function ProductCard({ product }: ProductCardProps) {
     );
   };
 
+  const getCurrentQuantity = () => {
+    const variant = getSelectedVariant();
+    const cartItem = items.find(item => 
+      item.productId === product.id && 
+      ((!variant?.id && !item.variantId) || item.variantId === variant?.id)
+    );
+    return cartItem ? cartItem.quantity : 0;
+  };
+
   const handleAddToCart = () => {
     const variant = getSelectedVariant();
     addToCart(product, variant?.id, selectedColor, selectedSize);
   };
+
+  const handleRemoveFromCart = () => {
+    const variant = getSelectedVariant();
+    removeFromCart(product.id, variant?.id);
+  };
+
+  const handleUpdateQuantity = (quantity: number) => {
+    const variant = getSelectedVariant();
+    updateQuantity(product.id, variant?.id, quantity);
+  };
+
+  const currentQuantity = getCurrentQuantity();
 
   return (
     <Card className="h-full flex flex-col">
@@ -76,6 +98,9 @@ export function ProductCard({ product }: ProductCardProps) {
             src={product.image}
             alt={product.name}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/placeholder.svg';
+            }}
           />
         </div>
         <CardTitle className="text-lg">{product.name}</CardTitle>
@@ -118,7 +143,7 @@ export function ProductCard({ product }: ProductCardProps) {
         )}
 
         {availableSizes.length > 0 && (
-          <div>
+          <div className="mb-3">
             <label className="block text-sm mb-1">サイズ</label>
             <Select 
               value={selectedSize} 
@@ -137,18 +162,57 @@ export function ProductCard({ product }: ProductCardProps) {
             </Select>
           </div>
         )}
+
+        <div className="mt-4">
+          <label className="block text-sm mb-1">数量: {currentQuantity}</label>
+          <div className="flex items-center space-x-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleUpdateQuantity(Math.max(0, currentQuantity - 1))}
+              disabled={currentQuantity === 0}
+            >
+              <MinusCircle className="h-4 w-4" />
+            </Button>
+            
+            <div className="flex-grow text-center">
+              {currentQuantity}
+            </div>
+            
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleUpdateQuantity(Math.min(2, currentQuantity + 1))}
+              disabled={currentQuantity >= 2}
+            >
+              <PlusCircle className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </CardContent>
       <CardFooter>
-        <Button 
-          className="w-full bg-manga-primary hover:bg-manga-secondary" 
-          onClick={handleAddToCart}
-          disabled={
-            (availableColors.length > 0 && !selectedColor) || 
-            (availableSizes.length > 0 && !selectedSize)
-          }
-        >
-          サンプル追加
-        </Button>
+        {currentQuantity === 0 ? (
+          <Button 
+            className="w-full bg-manga-primary hover:bg-manga-secondary" 
+            onClick={handleAddToCart}
+            disabled={
+              (availableColors.length > 0 && !selectedColor) || 
+              (availableSizes.length > 0 && !selectedSize)
+            }
+          >
+            サンプル追加
+          </Button>
+        ) : (
+          <Button 
+            className="w-full" 
+            variant="outline" 
+            onClick={handleRemoveFromCart}
+          >
+            カートから削除
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
