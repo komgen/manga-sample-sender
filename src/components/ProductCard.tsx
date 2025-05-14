@@ -1,118 +1,76 @@
+// 該当ファイル：ProductCard.tsx
 
-import { useState, useEffect } from "react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Product } from "@/types/product";
-import { useCart } from "@/contexts/CartContext";
-import { parseProductOptions } from "@/utils/productUtils";
-import { ProductImage } from "@/components/product/ProductImage";
-import { ProductOptions } from "@/components/product/ProductOptions";
-import { QuantitySelector } from "@/components/product/QuantitySelector";
+import { useState } from 'react';
+import { Product } from '@/types/product';
 
 interface ProductCardProps {
   product: Product;
+  onQuantityChange: (productId: string, quantity: number, color?: string, size?: string) => void;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
-  const { addToCart, removeFromCart, updateQuantity, items } = useCart();
-  
-  // Parse options
-  const colorOptions = parseProductOptions(product.color);
-  const sizeOptions = parseProductOptions(product.size);
-  
-  // Set initial selected values
-  const [selectedColor, setSelectedColor] = useState<string | undefined>(
-    colorOptions.length > 0 ? colorOptions[0] : undefined
-  );
-  const [selectedSize, setSelectedSize] = useState<string | undefined>(
-    sizeOptions.length > 0 ? sizeOptions[0] : undefined
-  );
+export function ProductCard({ product, onQuantityChange }: ProductCardProps) {
+  const [quantity, setQuantity] = useState(0);
+  const [color, setColor] = useState('');
+  const [size, setSize] = useState('');
 
-  // Check if the product is in cart
-  const getCurrentQuantity = () => {
-    const cartItem = items.find(item => 
-      item.productId === product.id && 
-      item.color === selectedColor && 
-      item.size === selectedSize
-    );
-    return cartItem ? cartItem.quantity : 0;
+  const handleQuantityChange = (newQty: number) => {
+    setQuantity(newQty);
+    onQuantityChange(product.id, newQty, color, size);
   };
 
-  // Add to cart
-  const handleAddToCart = () => {
-    addToCart(product, selectedColor, selectedSize);
+  const handleColorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedColor = e.target.value;
+    setColor(selectedColor);
+    onQuantityChange(product.id, quantity, selectedColor, size);
   };
 
-  // Remove from cart
-  const handleRemoveFromCart = () => {
-    removeFromCart(product.id, selectedColor, selectedSize);
+  const handleSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedSize = e.target.value;
+    setSize(selectedSize);
+    onQuantityChange(product.id, quantity, color, selectedSize);
   };
 
-  // Update quantity
-  const handleUpdateQuantity = (quantity: number) => {
-    updateQuantity(product.id, quantity, selectedColor, selectedSize);
-  };
-
-  // Get current quantity in cart
-  const currentQuantity = getCurrentQuantity();
-  
-  // Reset cart item when selected options change
-  useEffect(() => {
-    // This ensures we're showing the correct quantity when options change
-    getCurrentQuantity();
-  }, [selectedColor, selectedSize]);
+  const colorOptions = product.color ? product.color.split(',').map(c => c.trim()) : [];
+  const sizeOptions = product.size ? product.size.split(',').map(s => s.trim()) : [];
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader>
-        <ProductImage src={product.image} alt={product.name} />
-        <CardTitle className="text-lg">{product.name}</CardTitle>
-        <CardDescription>{product.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-grow">
-        <ProductOptions
-          colorOptions={colorOptions}
-          sizeOptions={sizeOptions}
-          selectedColor={selectedColor}
-          selectedSize={selectedSize}
-          onColorChange={setSelectedColor}
-          onSizeChange={setSelectedSize}
-        />
+    <div className="border p-4 rounded-md">
+      <img src={product.image} alt={product.name} className="mb-2 w-full object-cover" />
+      <h3 className="font-semibold text-lg mb-1">{product.name}</h3>
+      {product.description && <p className="text-sm text-muted mb-2">{product.description}</p>}
 
-        <QuantitySelector
-          quantity={currentQuantity}
-          onUpdateQuantity={handleUpdateQuantity}
-        />
-      </CardContent>
-      <CardFooter>
-        {currentQuantity === 0 ? (
-          <Button 
-            className="w-full bg-manga-primary hover:bg-manga-secondary" 
-            onClick={handleAddToCart}
-            disabled={
-              (colorOptions.length > 0 && !selectedColor) || 
-              (sizeOptions.length > 0 && !selectedSize)
-            }
-          >
-            サンプル追加
-          </Button>
-        ) : (
-          <Button 
-            className="w-full" 
-            variant="outline" 
-            onClick={handleRemoveFromCart}
-          >
-            カートから削除
-          </Button>
-        )}
-      </CardFooter>
-    </Card>
+      {colorOptions.length > 0 && (
+        <div className="mb-2">
+          <label className="block text-sm font-medium">色:</label>
+          <select className="w-full border rounded p-1" value={color} onChange={handleColorChange}>
+            <option value="">選択してください</option>
+            {colorOptions.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {sizeOptions.length > 0 && (
+        <div className="mb-2">
+          <label className="block text-sm font-medium">サイズ:</label>
+          <select className="w-full border rounded p-1" value={size} onChange={handleSizeChange}>
+            <option value="">選択してください</option>
+            {sizeOptions.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mt-2">
+        <label className="text-sm font-medium">数量: </label>
+        <select className="border rounded p-1" value={quantity} onChange={(e) => handleQuantityChange(Number(e.target.value))}>
+          {[0, 1, 2].map(num => (
+            <option key={num} value={num}>{num}</option>
+          ))}
+        </select>
+      </div>
+    </div>
   );
 }
