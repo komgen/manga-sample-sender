@@ -9,16 +9,12 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { Product } from "@/types/product";
 import { useCart } from "@/contexts/CartContext";
-import { MinusCircle, PlusCircle } from "lucide-react";
+import { parseProductOptions } from "@/utils/productUtils";
+import { ProductImage } from "@/components/product/ProductImage";
+import { ProductOptions } from "@/components/product/ProductOptions";
+import { QuantitySelector } from "@/components/product/QuantitySelector";
 
 interface ProductCardProps {
   product: Product;
@@ -27,15 +23,9 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart, removeFromCart, updateQuantity, items } = useCart();
   
-  // Parse color options from the product
-  const colorOptions = product.color 
-    ? product.color.split(',').map(color => color.trim()).filter(Boolean)
-    : [];
-  
-  // Parse size options from the product
-  const sizeOptions = product.size
-    ? product.size.split(',').map(size => size.trim()).filter(Boolean)
-    : [];
+  // Parse options
+  const colorOptions = parseProductOptions(product.color);
+  const sizeOptions = parseProductOptions(product.size);
   
   // Set initial selected values
   const [selectedColor, setSelectedColor] = useState<string | undefined>(
@@ -82,90 +72,24 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <div className="aspect-square w-full bg-muted rounded-md overflow-hidden mb-3">
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = '/placeholder.svg';
-            }}
-          />
-        </div>
+        <ProductImage src={product.image} alt={product.name} />
         <CardTitle className="text-lg">{product.name}</CardTitle>
         <CardDescription>{product.description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
-        {colorOptions.length > 0 && (
-          <div className="mb-3">
-            <label className="block text-sm mb-1">カラー</label>
-            <Select
-              value={selectedColor}
-              onValueChange={setSelectedColor}
-            >
-              <SelectTrigger className="w-full bg-white">
-                <SelectValue placeholder="カラーを選択" />
-              </SelectTrigger>
-              <SelectContent>
-                {colorOptions.map((color) => (
-                  <SelectItem key={color} value={color}>
-                    {color}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        <ProductOptions
+          colorOptions={colorOptions}
+          sizeOptions={sizeOptions}
+          selectedColor={selectedColor}
+          selectedSize={selectedSize}
+          onColorChange={setSelectedColor}
+          onSizeChange={setSelectedSize}
+        />
 
-        {sizeOptions.length > 0 && (
-          <div className="mb-3">
-            <label className="block text-sm mb-1">サイズ</label>
-            <Select 
-              value={selectedSize} 
-              onValueChange={setSelectedSize}
-            >
-              <SelectTrigger className="w-full bg-white">
-                <SelectValue placeholder="サイズを選択" />
-              </SelectTrigger>
-              <SelectContent>
-                {sizeOptions.map((size) => (
-                  <SelectItem key={size} value={size}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        <div className="mt-4">
-          <label className="block text-sm mb-1">数量: {currentQuantity}</label>
-          <div className="flex items-center space-x-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleUpdateQuantity(Math.max(0, currentQuantity - 1))}
-              disabled={currentQuantity === 0}
-            >
-              <MinusCircle className="h-4 w-4" />
-            </Button>
-            
-            <div className="flex-grow text-center">
-              {currentQuantity}
-            </div>
-            
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleUpdateQuantity(Math.min(2, currentQuantity + 1))}
-              disabled={currentQuantity >= 2}
-            >
-              <PlusCircle className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <QuantitySelector
+          quantity={currentQuantity}
+          onUpdateQuantity={handleUpdateQuantity}
+        />
       </CardContent>
       <CardFooter>
         {currentQuantity === 0 ? (
