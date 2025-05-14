@@ -57,17 +57,17 @@ export function ProductCard({ product }: ProductCardProps) {
 
   // Add to cart
   const handleAddToCart = () => {
-    addToCart(product, undefined, selectedColor, selectedSize);
+    addToCart(product, selectedColor, selectedSize);
   };
 
   // Remove from cart
   const handleRemoveFromCart = () => {
-    removeFromCart(product.id, undefined, selectedColor, selectedSize);
+    removeFromCart(product.id, selectedColor, selectedSize);
   };
 
   // Update quantity
   const handleUpdateQuantity = (quantity: number) => {
-    updateQuantity(product.id, undefined, quantity, selectedColor, selectedSize);
+    updateQuantity(product.id, quantity, selectedColor, selectedSize);
   };
 
   // Get current quantity in cart
