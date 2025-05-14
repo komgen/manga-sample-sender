@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -26,69 +26,58 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart, removeFromCart, updateQuantity, items } = useCart();
+  
+  // Parse color options from the product
+  const colorOptions = product.color 
+    ? product.color.split(',').map(color => color.trim()).filter(Boolean)
+    : [];
+  
+  // Parse size options from the product
+  const sizeOptions = product.size
+    ? product.size.split(',').map(size => size.trim()).filter(Boolean)
+    : [];
+  
+  // Set initial selected values
   const [selectedColor, setSelectedColor] = useState<string | undefined>(
-    product.variants && product.variants.length > 0 && product.variants[0].color
-      ? product.variants[0].color
-      : undefined
+    colorOptions.length > 0 ? colorOptions[0] : undefined
   );
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
-    product.variants && product.variants.length > 0 && product.variants[0].size
-      ? product.variants[0].size
-      : undefined
+    sizeOptions.length > 0 ? sizeOptions[0] : undefined
   );
 
-  const availableColors = product.variants
-    ? Array.from(new Set(product.variants.map(v => v.color).filter(Boolean)))
-    : [];
-
-  const availableSizes = product.variants
-    ? Array.from(
-        new Set(
-          product.variants
-            .filter(v => !selectedColor || v.color === selectedColor)
-            .map(v => v.size)
-            .filter(Boolean)
-        )
-      )
-    : [];
-
-  const getSelectedVariant = () => {
-    if (!product.variants || product.variants.length === 0) {
-      return null;
-    }
-
-    return product.variants.find(
-      v => 
-        (!selectedColor || v.color === selectedColor) && 
-        (!selectedSize || v.size === selectedSize)
-    );
-  };
-
+  // Check if the product is in cart
   const getCurrentQuantity = () => {
-    const variant = getSelectedVariant();
     const cartItem = items.find(item => 
       item.productId === product.id && 
-      ((!variant?.id && !item.variantId) || item.variantId === variant?.id)
+      item.color === selectedColor && 
+      item.size === selectedSize
     );
     return cartItem ? cartItem.quantity : 0;
   };
 
+  // Add to cart
   const handleAddToCart = () => {
-    const variant = getSelectedVariant();
-    addToCart(product, variant?.id, selectedColor, selectedSize);
+    addToCart(product, undefined, selectedColor, selectedSize);
   };
 
+  // Remove from cart
   const handleRemoveFromCart = () => {
-    const variant = getSelectedVariant();
-    removeFromCart(product.id, variant?.id);
+    removeFromCart(product.id, undefined, selectedColor, selectedSize);
   };
 
+  // Update quantity
   const handleUpdateQuantity = (quantity: number) => {
-    const variant = getSelectedVariant();
-    updateQuantity(product.id, variant?.id, quantity);
+    updateQuantity(product.id, undefined, quantity, selectedColor, selectedSize);
   };
 
+  // Get current quantity in cart
   const currentQuantity = getCurrentQuantity();
+  
+  // Reset cart item when selected options change
+  useEffect(() => {
+    // This ensures we're showing the correct quantity when options change
+    getCurrentQuantity();
+  }, [selectedColor, selectedSize]);
 
   return (
     <Card className="h-full flex flex-col">
@@ -107,33 +96,19 @@ export function ProductCard({ product }: ProductCardProps) {
         <CardDescription>{product.description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
-        {availableColors.length > 0 && (
+        {colorOptions.length > 0 && (
           <div className="mb-3">
             <label className="block text-sm mb-1">カラー</label>
             <Select
               value={selectedColor}
-              onValueChange={(value) => {
-                setSelectedColor(value);
-                // Reset size if the current size is not available for the new color
-                const sizesForColor = Array.from(
-                  new Set(
-                    product.variants
-                      ?.filter(v => v.color === value)
-                      .map(v => v.size)
-                      .filter(Boolean) || []
-                  )
-                );
-                if (selectedSize && !sizesForColor.includes(selectedSize)) {
-                  setSelectedSize(sizesForColor[0]);
-                }
-              }}
+              onValueChange={setSelectedColor}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-white">
                 <SelectValue placeholder="カラーを選択" />
               </SelectTrigger>
               <SelectContent>
-                {availableColors.map((color) => (
-                  <SelectItem key={color} value={color || ''}>
+                {colorOptions.map((color) => (
+                  <SelectItem key={color} value={color}>
                     {color}
                   </SelectItem>
                 ))}
@@ -142,19 +117,19 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
-        {availableSizes.length > 0 && (
+        {sizeOptions.length > 0 && (
           <div className="mb-3">
             <label className="block text-sm mb-1">サイズ</label>
             <Select 
               value={selectedSize} 
-              onValueChange={(value) => setSelectedSize(value)}
+              onValueChange={setSelectedSize}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-white">
                 <SelectValue placeholder="サイズを選択" />
               </SelectTrigger>
               <SelectContent>
-                {availableSizes.map((size) => (
-                  <SelectItem key={size} value={size || ''}>
+                {sizeOptions.map((size) => (
+                  <SelectItem key={size} value={size}>
                     {size}
                   </SelectItem>
                 ))}
@@ -198,8 +173,8 @@ export function ProductCard({ product }: ProductCardProps) {
             className="w-full bg-manga-primary hover:bg-manga-secondary" 
             onClick={handleAddToCart}
             disabled={
-              (availableColors.length > 0 && !selectedColor) || 
-              (availableSizes.length > 0 && !selectedSize)
+              (colorOptions.length > 0 && !selectedColor) || 
+              (sizeOptions.length > 0 && !selectedSize)
             }
           >
             サンプル追加

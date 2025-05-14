@@ -7,6 +7,8 @@ export interface Product {
   image: string;
   price?: number; // Not required for sample selection but good for reference
   variants?: Variant[];
+  color?: string; // New field for comma-separated colors
+  size?: string;  // New field for comma-separated sizes
 }
 
 export interface Variant {
