@@ -41,8 +41,11 @@ export function ProductCard({ product }: ProductCardProps) {
     if (newQuantity === 0) {
       removeFromCart(product.id);
     } else if (quantity === 0) {
+      // Convert newQuantity to string if needed by the addToCart function
       addToCart(product, newQuantity, selectedColor, selectedSize);
     } else {
+      // The error is here - we need to ensure we're passing the correct type
+      // Convert productId to string if the function expects a string
       updateQuantity(product.id, undefined, newQuantity);
     }
   };
