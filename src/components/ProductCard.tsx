@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Product } from "@/types/product";
 import {
@@ -8,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { parseProductOptions } from "@/utils/productUtils";
 
@@ -21,47 +21,36 @@ export function ProductCard({ product }: ProductCardProps) {
     name: product.name,
     color: product.color,
     size: product.size,
-    type: product.type,
   });
-  
+
   const [quantity, setQuantity] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
-  
-  const { addToCart, updateQuantity, removeFromCart } = useCart();
+
+  const { addToCart } = useCart();
 
   // Parse color and size options from comma-separated strings
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
   const sizeOptions = product.size ? parseProductOptions(product.size) : [];
 
   const handleQuantityChange = (value: string) => {
-    const newQuantity = parseInt(value, 10);
-    setQuantity(newQuantity);
-    
-    if (newQuantity === 0) {
-      removeFromCart(product.id);
-    } else if (quantity === 0) {
-      // Convert newQuantity to string if needed by the addToCart function
-      addToCart(product, newQuantity, selectedColor, selectedSize);
-    } else {
-      // The error is here - we need to ensure we're passing the correct type
-      // Convert productId to string if the function expects a string
-      updateQuantity(product.id, undefined, newQuantity.toString());
-    }
+    setQuantity(parseInt(value, 10));
   };
 
   const handleColorChange = (value: string) => {
     setSelectedColor(value);
-    if (quantity > 0) {
-      updateQuantity(product.id, undefined, quantity.toString());
-    }
   };
 
   const handleSizeChange = (value: string) => {
     setSelectedSize(value);
-    if (quantity > 0) {
-      updateQuantity(product.id, undefined, quantity.toString());
+  };
+
+  const handleAddToCart = () => {
+    if (!selectedColor || !selectedSize || quantity === 0) {
+      alert("色・サイズ・数量をすべて選択してください");
+      return;
     }
+    addToCart(product, quantity, selectedColor, selectedSize);
   };
 
   return (
@@ -125,6 +114,10 @@ export function ProductCard({ product }: ProductCardProps) {
           </SelectContent>
         </Select>
       </div>
+
+      <Button className="w-full mt-2" onClick={handleAddToCart}>
+        カートに入れる
+      </Button>
     </div>
   );
 }
