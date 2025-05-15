@@ -46,21 +46,21 @@ export function ProductCard({ product }: ProductCardProps) {
     } else {
       // The error is here - we need to ensure we're passing the correct type
       // Convert productId to string if the function expects a string
-      updateQuantity(product.id, undefined, newQuantity);
+      updateQuantity(product.id, undefined, newQuantity.toString());
     }
   };
 
   const handleColorChange = (value: string) => {
     setSelectedColor(value);
     if (quantity > 0) {
-      updateQuantity(product.id, undefined, quantity);
+      updateQuantity(product.id, undefined, quantity.toString());
     }
   };
 
   const handleSizeChange = (value: string) => {
     setSelectedSize(value);
     if (quantity > 0) {
-      updateQuantity(product.id, undefined, quantity);
+      updateQuantity(product.id, undefined, quantity.toString());
     }
   };
 
