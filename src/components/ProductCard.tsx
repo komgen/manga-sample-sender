@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Product } from "@/types/product";
 import { Button } from "@/components/ui/button";
@@ -8,28 +9,57 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCart } from "@/contexts/CartContext";
+import { parseProductOptions } from "@/utils/productUtils";
 
 interface ProductCardProps {
   product: Product;
-  onQuantityChange: (productId: string, quantity: number) => void;
 }
 
-export default function ProductCard({
-  product,
-  onQuantityChange,
-}: ProductCardProps) {
+// Exporting as a named export to match the import in Index.tsx
+export function ProductCard({ product }: ProductCardProps) {
   console.log('Product debug:', {
-  name: product.name,
-  color: product.color,
-  size: product.size,
-  type: product.type,
-});
+    name: product.name,
+    color: product.color,
+    size: product.size,
+    type: product.type,
+  });
+  
   const [quantity, setQuantity] = useState(0);
+  const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
+  const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
+  
+  const { addToCart, updateCart, removeFromCart } = useCart();
+
+  // Parse color and size options from comma-separated strings
+  const colorOptions = product.color ? parseProductOptions(product.color) : [];
+  const sizeOptions = product.size ? parseProductOptions(product.size) : [];
 
   const handleQuantityChange = (value: string) => {
     const newQuantity = parseInt(value, 10);
     setQuantity(newQuantity);
-    onQuantityChange(product.id, newQuantity);
+    
+    if (newQuantity === 0) {
+      removeFromCart(product.id);
+    } else if (quantity === 0) {
+      addToCart(product, newQuantity, selectedColor, selectedSize);
+    } else {
+      updateCart(product.id, newQuantity);
+    }
+  };
+
+  const handleColorChange = (value: string) => {
+    setSelectedColor(value);
+    if (quantity > 0) {
+      updateCart(product.id, quantity, value, selectedSize);
+    }
+  };
+
+  const handleSizeChange = (value: string) => {
+    setSelectedSize(value);
+    if (quantity > 0) {
+      updateCart(product.id, quantity, selectedColor, value);
+    }
   };
 
   return (
@@ -44,24 +74,55 @@ export default function ProductCard({
         {product.description}
       </p>
 
-      {(product.color || product.size) && (
-        <p className="text-sm text-muted-foreground text-center mb-2">
-          {product.color || ""} {product.color && product.size ? " / " : ""}
-          {product.size || ""}
-        </p>
+      {colorOptions.length > 0 && (
+        <div className="w-full mb-2">
+          <div className="mb-1">カラー:</div>
+          <Select value={selectedColor} onValueChange={handleColorChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="選択してください" />
+            </SelectTrigger>
+            <SelectContent>
+              {colorOptions.map((color) => (
+                <SelectItem key={color} value={color}>
+                  {color}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       )}
 
-      <div className="mb-2">数量:</div>
-      <Select value={quantity.toString()} onValueChange={handleQuantityChange}>
-        <SelectTrigger className="w-[80px]">
-          <SelectValue placeholder="数量" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="0">0</SelectItem>
-          <SelectItem value="1">1</SelectItem>
-          <SelectItem value="2">2</SelectItem>
-        </SelectContent>
-      </Select>
+      {sizeOptions.length > 0 && (
+        <div className="w-full mb-2">
+          <div className="mb-1">サイズ:</div>
+          <Select value={selectedSize} onValueChange={handleSizeChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="選択してください" />
+            </SelectTrigger>
+            <SelectContent>
+              {sizeOptions.map((size) => (
+                <SelectItem key={size} value={size}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      <div className="w-full mb-2">
+        <div className="mb-1">数量:</div>
+        <Select value={quantity.toString()} onValueChange={handleQuantityChange}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="数量" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">0</SelectItem>
+            <SelectItem value="1">1</SelectItem>
+            <SelectItem value="2">2</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
