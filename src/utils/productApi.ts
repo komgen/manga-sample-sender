@@ -165,13 +165,15 @@ export const fetchProducts = async (): Promise<Product[]> => {
       }
       
       return {
-        id,
-        name: productName,
-        type: productType,
-        description,
-        image,
-        variants
-      };
+  id,
+  name: productName,
+  type: productType,
+  description,
+  image,
+  variants,
+  color: item.色 || item.colors || "",
+  size: item.サイズ || item.sizes || ""
+};
     });
     
     console.log('Processed products:', products);
