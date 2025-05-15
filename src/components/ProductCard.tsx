@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { Product } from "@/types/product";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -29,7 +28,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
   
-  const { addToCart, updateCart, removeFromCart } = useCart();
+  const { addToCart, updateQuantity, removeFromCart } = useCart();
 
   // Parse color and size options from comma-separated strings
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
@@ -44,21 +43,21 @@ export function ProductCard({ product }: ProductCardProps) {
     } else if (quantity === 0) {
       addToCart(product, newQuantity, selectedColor, selectedSize);
     } else {
-      updateCart(product.id, newQuantity);
+      updateQuantity(product.id, undefined, newQuantity);
     }
   };
 
   const handleColorChange = (value: string) => {
     setSelectedColor(value);
     if (quantity > 0) {
-      updateCart(product.id, quantity, value, selectedSize);
+      updateQuantity(product.id, undefined, quantity);
     }
   };
 
   const handleSizeChange = (value: string) => {
     setSelectedSize(value);
     if (quantity > 0) {
-      updateCart(product.id, quantity, selectedColor, value);
+      updateQuantity(product.id, undefined, quantity);
     }
   };
 
