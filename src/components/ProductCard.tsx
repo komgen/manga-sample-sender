@@ -17,17 +17,11 @@ interface ProductCardProps {
 
 // Exporting as a named export to match the import in Index.tsx
 export function ProductCard({ product }: ProductCardProps) {
-  console.log('Product debug:', {
-    name: product.name,
-    color: product.color,
-    size: product.size,
-  });
-
   const [quantity, setQuantity] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
 
-  const { addToCart } = useCart();
+  const { addToCart, removeFromCart } = useCart();
 
   // Parse color and size options from comma-separated strings
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
@@ -46,10 +40,13 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const handleAddToCart = () => {
-    if (!selectedColor || !selectedSize || quantity === 0) {
-      alert("色・サイズ・数量をすべて選択してください");
+    if (quantity === 0) {
+      // 数量0は削除
+      removeFromCart(product.id, selectedColor, selectedSize);
       return;
     }
+
+    // 色やサイズが未選択でもOK（空欄でカートに追加）
     addToCart(product, quantity, selectedColor, selectedSize);
   };
 
