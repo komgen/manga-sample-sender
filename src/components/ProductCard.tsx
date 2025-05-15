@@ -18,6 +18,12 @@ export default function ProductCard({
   product,
   onQuantityChange,
 }: ProductCardProps) {
+  console.log('Product debug:', {
+  name: product.name,
+  color: product.color,
+  size: product.size,
+  type: product.type,
+});
   const [quantity, setQuantity] = useState(0);
 
   const handleQuantityChange = (value: string) => {
