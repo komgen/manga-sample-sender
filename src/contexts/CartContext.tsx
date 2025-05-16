@@ -19,6 +19,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const addToCart = (product: Product, variantId?: string, color?: string, size?: string) => {
+    console.log("addToCart に渡された product:", product); // ←これ！
     console.log("カート追加処理開始");
 
     const existingItemIndex = items.findIndex(item =>
