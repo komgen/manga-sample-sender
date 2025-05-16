@@ -19,11 +19,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const addToCart = (product: Product, variantId?: string, color?: string, size?: string) => {
+    console.log("カート追加処理開始");
+
     const existingItemIndex = items.findIndex(item =>
       item.productId === product.id &&
-      ((!variantId && !item.variantId) || item.variantId === variantId) &&
       item.color === color &&
-      item.size === size
+      item.size === size &&
+      ((!variantId && !item.variantId) || item.variantId === variantId)
     );
 
     if (existingItemIndex !== -1) {
@@ -73,31 +75,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeFromCart = (productId: string, variantId?: string, color?: string, size?: string) => {
     const itemToRemove = items.find(item =>
       item.productId === productId &&
-      ((!variantId && !item.variantId) || item.variantId === variantId) &&
       item.color === color &&
-      item.size === size
+      item.size === size &&
+      ((!variantId && !item.variantId) || item.variantId === variantId)
     );
 
     if (itemToRemove) {
       const productName = `${itemToRemove.product.name} ${itemToRemove.color ? `(${itemToRemove.color}` : ''}${itemToRemove.size ? `/${itemToRemove.size})` : itemToRemove.color ? ')' : ''}`;
 
+      setItems(items.filter(item =>
+        !(item.productId === productId &&
+          item.color === color &&
+          item.size === size &&
+          ((!variantId && !item.variantId) || item.variantId === variantId))
+      ));
+
       toast({
         title: "カートから削除しました",
         description: `${productName} をカートから削除しました`,
       });
-
-      setItems(items.filter(item =>
-        !(
-          item.productId === productId &&
-          ((!variantId && !item.variantId) || item.variantId === variantId) &&
-          item.color === color &&
-          item.size === size
-        )
-      ));
     }
   };
 
   const updateQuantity = (productId: string, variantId: string | undefined, quantity: number, color?: string, size?: string) => {
+    console.log("updateQuantity 呼び出し", { productId, variantId, quantity, color, size });
+
     if (quantity > 2) {
       toast({
         title: "数量制限",
@@ -106,23 +108,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
       quantity = 2;
     }
-  console.log("updateQuantity 呼び出し", {
-    productId,
-    variantId,
-    quantity,
-    color,
-    size,
-  });
-    
+
     const itemToUpdate = items.find(item =>
       item.productId === productId &&
-      ((!variantId && !item.variantId) || item.variantId === variantId) &&
       item.color === color &&
-      item.size === size
+      item.size === size &&
+      ((!variantId && !item.variantId) || item.variantId === variantId)
     );
 
     console.log("itemToUpdate:", itemToUpdate);
-    
+
     if (quantity <= 0) {
       if (itemToUpdate) {
         removeFromCart(productId, variantId, color, size);
@@ -136,9 +131,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems(items.map(item => {
         if (
           item.productId === productId &&
-          ((!variantId && !item.variantId) || item.variantId === variantId) &&
           item.color === color &&
-          item.size === size
+          item.size === size &&
+          ((!variantId && !item.variantId) || item.variantId === variantId)
         ) {
           return { ...item, quantity };
         }
@@ -149,6 +144,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         title: "数量を更新しました",
         description: `${productName} を${quantity}点に更新しました`,
       });
+    } else {
+      // もし該当アイテムが存在しなければ新規追加
+      addToCart({ ...productId } as Product, variantId, color, size);
     }
   };
 
