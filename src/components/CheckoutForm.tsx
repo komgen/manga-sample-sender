@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -9,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -46,7 +44,7 @@ const formSchema = z.object({
 export function CheckoutForm({ onBack, onSubmit }: CheckoutFormProps) {
   const { items, getCartTotal } = useCart();
   const { toast } = useToast();
-  
+
   const form = useForm<CheckoutFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -76,19 +74,24 @@ export function CheckoutForm({ onBack, onSubmit }: CheckoutFormProps) {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">サンプル送付情報</h2>
-      
+
       <div className="mb-6">
         <h3 className="font-medium mb-2">選択したアイテム ({getCartTotal()}点)</h3>
         <div className="bg-muted p-4 rounded-md">
           {items.map((item) => (
-            <div key={`${item.productId}-${item.variantId || 'default'}`} className="flex justify-between mb-2">
+            <div
+              key={`${item.productId}-${item.variantId || "default"}`}
+              className="flex justify-between mb-2"
+            >
               <div>
-                <p className="font-medium">{item.product.name}</p>
+                <p className="font-medium">
+                  {item.product?.name ?? "商品名不明"}
+                </p>
                 {(item.color || item.size) && (
                   <p className="text-sm text-muted-foreground">
-                    {item.color ? item.color : ''}
-                    {item.color && item.size ? ' / ' : ''}
-                    {item.size ? item.size : ''}
+                    {item.color ? item.color : ""}
+                    {item.color && item.size ? " / " : ""}
+                    {item.size ? item.size : ""}
                   </p>
                 )}
               </div>
@@ -203,7 +206,10 @@ export function CheckoutForm({ onBack, onSubmit }: CheckoutFormProps) {
             <Button type="button" variant="outline" onClick={onBack}>
               戻る
             </Button>
-            <Button type="submit" className="bg-manga-primary hover:bg-manga-secondary">
+            <Button
+              type="submit"
+              className="bg-manga-primary hover:bg-manga-secondary"
+            >
               送信する
             </Button>
           </div>
