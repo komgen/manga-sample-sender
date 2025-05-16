@@ -38,6 +38,7 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const handleAddToCart = () => {
+    console.log("カート追加処理開始"); // ← ここを追加
     const variantId = undefined; // 使っていないが必要ならここで生成
 
     if (quantity <= 0) {
