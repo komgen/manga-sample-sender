@@ -121,6 +121,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       item.size === size
     );
 
+    console.log("itemToUpdate:", itemToUpdate);
+    
     if (quantity <= 0) {
       if (itemToUpdate) {
         removeFromCart(productId, variantId, color, size);
