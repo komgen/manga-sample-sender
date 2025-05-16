@@ -7,29 +7,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { parseProductOptions } from "@/utils/productUtils";
-import { Button } from "@/components/ui/button";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  console.log("ProductCard props product:", product);
-
   const [quantity, setQuantity] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
 
-  const { addToCart } = useCart();
+  const { addToCart, updateQuantity, removeFromCart } = useCart();
 
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
   const sizeOptions = product.size ? parseProductOptions(product.size) : [];
-
-  const handleQuantityChange = (value: string) => {
-    setQuantity(parseInt(value, 10));
-  };
 
   const handleColorChange = (value: string) => {
     setSelectedColor(value);
@@ -39,10 +33,16 @@ export function ProductCard({ product }: ProductCardProps) {
     setSelectedSize(value);
   };
 
+  const handleQuantityChange = (value: string) => {
+    const newQuantity = parseInt(value, 10);
+    setQuantity(newQuantity);
+  };
+
   const handleAddToCart = () => {
-    if (quantity > 0) {
-      console.log("送信する product:", product);
-      addToCart(product, undefined, selectedColor, selectedSize, quantity);
+    if (quantity === 0) {
+      removeFromCart(product.id, undefined, selectedColor, selectedSize);
+    } else {
+      updateQuantity(product, product.id, undefined, quantity, selectedColor, selectedSize);
     }
   };
 
@@ -98,7 +98,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="mb-1">数量:</div>
         <Select value={quantity.toString()} onValueChange={handleQuantityChange}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="数量" />
+            <SelectValue placeholder="数量を選択" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="0">0</SelectItem>
@@ -108,7 +108,10 @@ export function ProductCard({ product }: ProductCardProps) {
         </Select>
       </div>
 
-      <Button onClick={handleAddToCart} className="w-full mt-2">
+      <Button
+        onClick={handleAddToCart}
+        className="mt-2 bg-manga-primary hover:bg-manga-secondary w-full"
+      >
         カートに入れる
       </Button>
     </div>
