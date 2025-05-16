@@ -1,13 +1,12 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { CartItem, Product, Variant } from '@/types/product';
+import { CartItem, Product } from '@/types/product';
 import { useToast } from '@/components/ui/use-toast';
 
 interface CartContextType {
   items: CartItem[];
   addToCart: (product: Product, variantId?: string, color?: string, size?: string) => void;
-  removeFromCart: (productId: string, variantId?: string) => void;
-  updateQuantity: (productId: string, variantId: string | undefined, quantity: number) => void;
+  removeFromCart: (productId: string, variantId?: string, color?: string, size?: string) => void;
+  updateQuantity: (productId: string, variantId: string | undefined, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
@@ -20,9 +19,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const addToCart = (product: Product, variantId?: string, color?: string, size?: string) => {
-    const existingItemIndex = items.findIndex(item => 
-      item.productId === product.id && 
-      ((!variantId && !item.variantId) || item.variantId === variantId)
+    const existingItemIndex = items.findIndex(item =>
+      item.productId === product.id &&
+      ((!variantId && !item.variantId) || item.variantId === variantId) &&
+      item.color === color &&
+      item.size === size
     );
 
     if (existingItemIndex !== -1) {
@@ -42,26 +43,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ...item,
         quantity: item.quantity + 1
       };
-      
+
       setItems(updatedItems);
-      
+
       toast({
         title: "数量を更新しました",
         description: `${product.name} ${color ? `(${color}` : ''}${size ? `/${size})` : color ? ')' : ''} を${item.quantity + 1}点に更新しました`,
       });
     } else {
       setItems([
-        ...items, 
-        { 
-          productId: product.id, 
-          variantId, 
-          quantity: 1, 
+        ...items,
+        {
+          productId: product.id,
+          variantId,
+          quantity: 1,
           product,
           color,
           size
         }
       ]);
-      
+
       toast({
         title: "カートに追加しました",
         description: `${product.name} ${color ? `(${color}` : ''}${size ? `/${size})` : color ? ')' : ''} をカートに追加しました`,
@@ -69,28 +70,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const removeFromCart = (productId: string, variantId?: string) => {
-    const itemToRemove = items.find(item => 
-      item.productId === productId && 
-      ((!variantId && !item.variantId) || item.variantId === variantId)
+  const removeFromCart = (productId: string, variantId?: string, color?: string, size?: string) => {
+    const itemToRemove = items.find(item =>
+      item.productId === productId &&
+      ((!variantId && !item.variantId) || item.variantId === variantId) &&
+      item.color === color &&
+      item.size === size
     );
-    
+
     if (itemToRemove) {
       const productName = `${itemToRemove.product.name} ${itemToRemove.color ? `(${itemToRemove.color}` : ''}${itemToRemove.size ? `/${itemToRemove.size})` : itemToRemove.color ? ')' : ''}`;
-      
-      setItems(items.filter(item => 
-        !(item.productId === productId && 
-          ((!variantId && !item.variantId) || item.variantId === variantId))
-      ));
-      
+
       toast({
         title: "カートから削除しました",
         description: `${productName} をカートから削除しました`,
       });
+
+      setItems(items.filter(item =>
+        !(
+          item.productId === productId &&
+          ((!variantId && !item.variantId) || item.variantId === variantId) &&
+          item.color === color &&
+          item.size === size
+        )
+      ));
     }
   };
 
-  const updateQuantity = (productId: string, variantId: string | undefined, quantity: number) => {
+  const updateQuantity = (productId: string, variantId: string | undefined, quantity: number, color?: string, size?: string) => {
     if (quantity > 2) {
       toast({
         title: "数量制限",
@@ -100,29 +107,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
       quantity = 2;
     }
 
+    const itemToUpdate = items.find(item =>
+      item.productId === productId &&
+      ((!variantId && !item.variantId) || item.variantId === variantId) &&
+      item.color === color &&
+      item.size === size
+    );
+
     if (quantity <= 0) {
-      removeFromCart(productId, variantId);
+      if (itemToUpdate) {
+        removeFromCart(productId, variantId, color, size);
+      }
       return;
     }
 
-    const itemToUpdate = items.find(item => 
-      item.productId === productId && 
-      ((!variantId && !item.variantId) || item.variantId === variantId)
-    );
-    
     if (itemToUpdate) {
       const productName = `${itemToUpdate.product.name} ${itemToUpdate.color ? `(${itemToUpdate.color}` : ''}${itemToUpdate.size ? `/${itemToUpdate.size})` : itemToUpdate.color ? ')' : ''}`;
-      
+
       setItems(items.map(item => {
         if (
-          item.productId === productId && 
-          ((!variantId && !item.variantId) || item.variantId === variantId)
+          item.productId === productId &&
+          ((!variantId && !item.variantId) || item.variantId === variantId) &&
+          item.color === color &&
+          item.size === size
         ) {
           return { ...item, quantity };
         }
         return item;
       }));
-      
+
       toast({
         title: "数量を更新しました",
         description: `${productName} を${quantity}点に更新しました`,
