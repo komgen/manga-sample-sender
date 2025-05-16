@@ -6,7 +6,7 @@ interface CartContextType {
   items: CartItem[];
   addToCart: (product: Product, variantId?: string, color?: string, size?: string) => void;
   removeFromCart: (productId: string, variantId?: string, color?: string, size?: string) => void;
-  updateQuantity: (productId: string, variantId: string | undefined, quantity: number, color?: string, size?: string) => void;
+  updateQuantity: (product: Product, productId: string, variantId: string | undefined, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
@@ -19,7 +19,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const addToCart = (product: Product, variantId?: string, color?: string, size?: string) => {
-    console.log("addToCart に渡された product:", product); // ←これ！
+    console.log("addToCart に渡された product:", product);
     console.log("カート追加処理開始");
 
     const existingItemIndex = items.findIndex(item =>
@@ -98,7 +98,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateQuantity = (productId: string, variantId: string | undefined, quantity: number, color?: string, size?: string) => {
+  const updateQuantity = (
+    product: Product,
+    productId: string,
+    variantId: string | undefined,
+    quantity: number,
+    color?: string,
+    size?: string
+  ) => {
     console.log("updateQuantity 呼び出し", { productId, variantId, quantity, color, size });
 
     if (quantity > 2) {
@@ -146,8 +153,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         description: `${productName} を${quantity}点に更新しました`,
       });
     } else {
-      // もし該当アイテムが存在しなければ新規追加
-      addToCart({ ...productId } as Product, variantId, color, size);
+      addToCart(product, variantId, color, size);
     }
   };
 
