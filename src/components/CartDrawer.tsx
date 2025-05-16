@@ -1,13 +1,12 @@
-
-import { 
-  Drawer, 
-  DrawerClose, 
-  DrawerContent, 
-  DrawerDescription, 
-  DrawerFooter, 
-  DrawerHeader, 
-  DrawerTitle, 
-  DrawerTrigger 
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -30,11 +29,11 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
       toast({
         title: "エラー",
         description: "カートにアイテムがありません",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-    
+
     onCheckout();
   };
 
@@ -61,64 +60,80 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
           </DrawerHeader>
           <div className="p-4">
             {items.length === 0 ? (
-              <p className="text-center py-8 text-muted-foreground">カートは空です</p>
+              <p className="text-center py-8 text-muted-foreground">
+                カートは空です
+              </p>
             ) : (
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={`${item.productId}-${item.variantId || 'default'}`} className="flex items-center justify-between">
+                  <div
+                    key={`${item.productId}-${item.variantId || "default"}-${item.color || "none"}-${item.size || "none"}`}
+                    className="flex items-center justify-between"
+                  >
                     <div className="flex-1">
-                      <h4 className="font-medium">{item.product.name}</h4>
-                      {item.color && item.size && (
+                      <h4 className="font-medium">{item.product?.name || "（商品名不明）"}</h4>
+                      {(item.color || item.size) && (
                         <p className="text-sm text-muted-foreground">
-                          {item.color} / {item.size}
+                          {[item.color, item.size].filter(Boolean).join(" / ")}
                         </p>
-                      )}
-                      {item.color && !item.size && (
-                        <p className="text-sm text-muted-foreground">{item.color}</p>
                       )}
                     </div>
                     <div className="flex items-center space-x-1">
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
+                      <Button
+                        variant="outline"
+                        size="icon"
                         className="h-8 w-8"
-                        onClick={() => updateQuantity(
-                          item.productId, 
-                          item.variantId, 
-                          item.quantity - 1
-                        )}
+                        onClick={() =>
+                          updateQuantity(
+                            item.productId,
+                            item.variantId,
+                            item.quantity - 1,
+                            item.color,
+                            item.size
+                          )
+                        }
                       >
                         <MinusIcon className="h-4 w-4" />
                       </Button>
-                      <Input 
-                        type="number" 
-                        min={1} 
+                      <Input
+                        type="number"
+                        min={0}
                         max={2}
-                        value={item.quantity} 
-                        onChange={(e) => updateQuantity(
-                          item.productId, 
-                          item.variantId, 
-                          parseInt(e.target.value) || 1
-                        )}
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateQuantity(
+                            item.productId,
+                            item.variantId,
+                            parseInt(e.target.value) || 0,
+                            item.color,
+                            item.size
+                          )
+                        }
                         className="h-8 w-12 text-center"
                       />
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
+                      <Button
+                        variant="outline"
+                        size="icon"
                         className="h-8 w-8"
-                        onClick={() => updateQuantity(
-                          item.productId, 
-                          item.variantId, 
-                          item.quantity + 1
-                        )}
+                        onClick={() =>
+                          updateQuantity(
+                            item.productId,
+                            item.variantId,
+                            item.quantity + 1,
+                            item.color,
+                            item.size
+                          )
+                        }
                       >
                         <PlusIcon className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-8 w-8 text-destructive"
-                        onClick={() => removeFromCart(item.productId, item.variantId)}
+                        onClick={() =>
+                          removeFromCart(item.productId, item.variantId, item.color, item.size)
+                        }
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -127,17 +142,17 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                 ))}
               </div>
             )}
-            
+
             <Separator className="my-4" />
-            
+
             <div className="flex justify-between font-medium">
               <span>合計点数:</span>
               <span>{getCartTotal()} 点</span>
             </div>
           </div>
           <DrawerFooter>
-            <Button 
-              onClick={handleCheckout} 
+            <Button
+              onClick={handleCheckout}
               disabled={items.length === 0}
               className="bg-manga-primary hover:bg-manga-secondary"
             >
