@@ -15,13 +15,15 @@ interface ProductCardProps {
   product: Product;
 }
 
+// Exporting as a named export to match the import in Index.tsx
 export function ProductCard({ product }: ProductCardProps) {
   const [quantity, setQuantity] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
 
-  const { addToCart, updateQuantity, removeFromCart } = useCart();
+  const { addToCart, removeFromCart } = useCart();
 
+  // Parse color and size options from comma-separated strings
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
   const sizeOptions = product.size ? parseProductOptions(product.size) : [];
 
@@ -38,13 +40,14 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const handleAddToCart = () => {
-    const variantId = undefined; // 使っていないが必要ならここで生成
-
-    if (quantity <= 0) {
-      removeFromCart(product.id, variantId, selectedColor, selectedSize);
-    } else {
-      updateQuantity(product.id, variantId, quantity, selectedColor, selectedSize);
+    if (quantity === 0) {
+      // 数量0は削除
+      removeFromCart(product.id, selectedColor, selectedSize);
+      return;
     }
+
+    // 色やサイズが未選択でもOK（空欄でカートに追加）
+    addToCart(product, quantity, selectedColor, selectedSize);
   };
 
   return (
@@ -109,14 +112,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </Select>
       </div>
 
-      <Button
-        className="mt-2 w-full"
-        onClick={handleAddToCart}
-        disabled={
-          (colorOptions.length > 0 && !selectedColor) ||
-          (sizeOptions.length > 0 && !selectedSize)
-        }
-      >
+      <Button className="w-full mt-2" onClick={handleAddToCart}>
         カートに入れる
       </Button>
     </div>
