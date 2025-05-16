@@ -25,10 +25,6 @@ export function ProductCard({ product }: ProductCardProps) {
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
   const sizeOptions = product.size ? parseProductOptions(product.size) : [];
 
-  const handleQuantityChange = (value: string) => {
-    setQuantity(parseInt(value, 10));
-  };
-
   const handleColorChange = (value: string) => {
     setSelectedColor(value);
   };
@@ -37,14 +33,15 @@ export function ProductCard({ product }: ProductCardProps) {
     setSelectedSize(value);
   };
 
-  const handleAddToCart = () => {
-    console.log("カート追加処理開始"); // ← ここを追加
-    const variantId = undefined; // 使っていないが必要ならここで生成
+  const handleQuantityChange = (value: string) => {
+    setQuantity(parseInt(value, 10));
+  };
 
+  const handleAddToCart = () => {
     if (quantity <= 0) {
-      removeFromCart(product.id, variantId, selectedColor, selectedSize);
+      removeFromCart(product.id, undefined, selectedColor, selectedSize);
     } else {
-      updateQuantity(product.id, variantId, quantity, selectedColor, selectedSize);
+      updateQuantity(product.id, undefined, quantity, selectedColor, selectedSize);
     }
   };
 
@@ -100,7 +97,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="mb-1">数量:</div>
         <Select value={quantity.toString()} onValueChange={handleQuantityChange}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="数量" />
+            <SelectValue placeholder="数量を選択" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="0">0</SelectItem>
@@ -110,14 +107,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </Select>
       </div>
 
-      <Button
-        className="mt-2 w-full"
-        onClick={handleAddToCart}
-        disabled={
-          (colorOptions.length > 0 && !selectedColor) ||
-          (sizeOptions.length > 0 && !selectedSize)
-        }
-      >
+      <Button onClick={handleAddToCart} className="w-full mt-2">
         カートに入れる
       </Button>
     </div>
