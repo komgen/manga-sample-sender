@@ -7,9 +7,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { parseProductOptions } from "@/utils/productUtils";
+import { Button } from "@/components/ui/button";
 
 interface ProductCardProps {
   product: Product;
@@ -17,11 +17,12 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   console.log("ProductCard props product:", product);
+
   const [quantity, setQuantity] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
 
-  const { addToCart, updateQuantity, removeFromCart } = useCart();
+  const { addToCart } = useCart();
 
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
   const sizeOptions = product.size ? parseProductOptions(product.size) : [];
@@ -39,13 +40,9 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const handleAddToCart = () => {
-    console.log("カート追加処理開始"); // ← ここを追加
-    const variantId = undefined; // 使っていないが必要ならここで生成
-
-    if (quantity <= 0) {
-      removeFromCart(product.id, variantId, selectedColor, selectedSize);
-    } else {
-      updateQuantity(product.id, variantId, quantity, selectedColor, selectedSize);
+    if (quantity > 0) {
+      console.log("送信する product:", product);
+      addToCart(product, undefined, selectedColor, selectedSize, quantity);
     }
   };
 
@@ -111,14 +108,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </Select>
       </div>
 
-      <Button
-        className="mt-2 w-full"
-        onClick={handleAddToCart}
-        disabled={
-          (colorOptions.length > 0 && !selectedColor) ||
-          (sizeOptions.length > 0 && !selectedSize)
-        }
-      >
+      <Button onClick={handleAddToCart} className="w-full mt-2">
         カートに入れる
       </Button>
     </div>
