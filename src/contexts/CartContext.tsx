@@ -106,7 +106,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
       quantity = 2;
     }
-
+  console.log("updateQuantity 呼び出し", {
+    productId,
+    variantId,
+    quantity,
+    color,
+    size,
+  });
+    
     const itemToUpdate = items.find(item =>
       item.productId === productId &&
       ((!variantId && !item.variantId) || item.variantId === variantId) &&
