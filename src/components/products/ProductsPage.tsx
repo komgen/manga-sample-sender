@@ -18,7 +18,7 @@ export function ProductsPage({ onGoToCheckout }: ProductsPageProps) {
   const [selectedType, setSelectedType] = useState<ProductType | "all">("all");
   const [products, setProducts] = useState<Product[]>(defaultProducts);
   const [loading, setLoading] = useState(false);
-  
+
   const { items } = useCart();
   const { toast } = useToast();
 
@@ -27,7 +27,7 @@ export function ProductsPage({ onGoToCheckout }: ProductsPageProps) {
     setLoading(true);
     try {
       const fetchedProducts = await fetchProducts();
-      
+
       if (fetchedProducts && fetchedProducts.length > 0) {
         setProducts(fetchedProducts);
         toast({
@@ -52,9 +52,10 @@ export function ProductsPage({ onGoToCheckout }: ProductsPageProps) {
   }, []);
 
   // Filter products by type
-  const filteredProducts = selectedType === "all"
-    ? products
-    : products.filter(product => product.type === selectedType);
+  const filteredProducts =
+    selectedType === "all"
+      ? products
+      : products.filter((product) => product.type === selectedType);
 
   const handleCheckout = () => {
     if (items.length === 0) {
@@ -65,20 +66,20 @@ export function ProductsPage({ onGoToCheckout }: ProductsPageProps) {
       });
       return;
     }
-    
+
     onGoToCheckout();
   };
 
   return (
     <div className="container py-8">
+      {/* タイトル＋ボタンを１行に並べる */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">漫画グッズサンプル選択</h1>
+        {/* ページタイトルを変更 */}
+        <h1 className="text-2xl font-bold">商品選択</h1>
+
+        {/* 商品データ更新ボタン ＋ カートボタン */}
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline"
-            onClick={loadProducts}
-            disabled={loading}
-          >
+          <Button variant="outline" onClick={loadProducts} disabled={loading}>
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -91,15 +92,15 @@ export function ProductsPage({ onGoToCheckout }: ProductsPageProps) {
           <CartDrawer onCheckout={handleCheckout} />
         </div>
       </div>
-      
-      {/* 商品タイプ選択の UI を非表示 */}
+
+      {/* カテゴリフィルタは非表示のまま */}
       <div className="mb-8 hidden">
-        <ProductFilter 
-          selectedType={selectedType} 
-          onTypeChange={setSelectedType} 
+        <ProductFilter
+          selectedType={selectedType}
+          onTypeChange={setSelectedType}
         />
       </div>
-      
+
       {loading ? (
         <div className="flex justify-center items-center py-12">
           <Loader2 className="h-8 w-8 animate-spin mr-2" />
@@ -107,14 +108,16 @@ export function ProductsPage({ onGoToCheckout }: ProductsPageProps) {
         </div>
       ) : filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map(product => (
+          {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
       ) : (
         <div className="text-center py-12">
           <p>表示できる商品がありません。</p>
-          <p className="text-sm text-muted-foreground mt-2">Google Sheets設定を確認してください。</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Google Sheets設定を確認してください。
+          </p>
         </div>
       )}
     </div>
