@@ -33,7 +33,6 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
       });
       return;
     }
-
     onCheckout();
   };
 
@@ -50,6 +49,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
           )}
         </Button>
       </DrawerTrigger>
+
       <DrawerContent>
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
@@ -58,6 +58,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
               サンプル送付商品の確認と数量の調整ができます
             </DrawerDescription>
           </DrawerHeader>
+
           <div className="p-4">
             {items.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground">
@@ -67,17 +68,22 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
               <div className="space-y-4">
                 {items.map((item) => (
                   <div
-                    key={`${item.productId}-${item.variantId || "default"}-${item.color || "none"}-${item.size || "none"}`}
+                    key={`${item.productId}-${
+                      item.variantId || "default"
+                    }-${item.color || "none"}-${item.size || "none"}`}
                     className="flex items-center justify-between"
                   >
                     <div className="flex-1">
-                      <h4 className="font-medium">{item.product?.name || "（商品名不明）"}</h4>
+                      <h4 className="font-medium">
+                        {item.product?.name ?? "（商品名不明）"}
+                      </h4>
                       {(item.color || item.size) && (
                         <p className="text-sm text-muted-foreground">
                           {[item.color, item.size].filter(Boolean).join(" / ")}
                         </p>
                       )}
                     </div>
+
                     <div className="flex items-center space-x-1">
                       <Button
                         variant="outline"
@@ -85,6 +91,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                         className="h-8 w-8"
                         onClick={() =>
                           updateQuantity(
+                            item.product,
                             item.productId,
                             item.variantId,
                             item.quantity - 1,
@@ -95,6 +102,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                       >
                         <MinusIcon className="h-4 w-4" />
                       </Button>
+
                       <Input
                         type="number"
                         min={0}
@@ -102,21 +110,24 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                         value={item.quantity}
                         onChange={(e) =>
                           updateQuantity(
+                            item.product,
                             item.productId,
                             item.variantId,
-                            parseInt(e.target.value) || 0,
+                            parseInt(e.target.value, 10) || 0,
                             item.color,
                             item.size
                           )
                         }
                         className="h-8 w-12 text-center"
                       />
+
                       <Button
                         variant="outline"
                         size="icon"
                         className="h-8 w-8"
                         onClick={() =>
                           updateQuantity(
+                            item.product,
                             item.productId,
                             item.variantId,
                             item.quantity + 1,
@@ -127,12 +138,18 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                       >
                         <PlusIcon className="h-4 w-4" />
                       </Button>
+
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive"
                         onClick={() =>
-                          removeFromCart(item.productId, item.variantId, item.color, item.size)
+                          removeFromCart(
+                            item.productId,
+                            item.variantId,
+                            item.color,
+                            item.size
+                          )
                         }
                       >
                         <Trash2 className="h-4 w-4" />
@@ -150,6 +167,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
               <span>{getCartTotal()} 点</span>
             </div>
           </div>
+
           <DrawerFooter>
             <Button
               onClick={handleCheckout}
