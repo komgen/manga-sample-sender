@@ -6,7 +6,7 @@ interface CartContextType {
   items: CartItem[];
   addToCart: (product: Product, variantId?: string, color?: string, size?: string) => void;
   removeFromCart: (productId: string, variantId?: string, color?: string, size?: string) => void;
-  updateQuantity: (product: Product, variantId: string | undefined, quantity: number, color?: string, size?: string) => void;
+  updateQuantity: (product: Product, productId: string, variantId: string | undefined, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
@@ -19,6 +19,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const addToCart = (product: Product, variantId?: string, color?: string, size?: string) => {
+    console.log("addToCart に渡された product:", product);
+    console.log("カート追加処理開始");
+
     const existingItemIndex = items.findIndex(item =>
       item.productId === product.id &&
       item.color === color &&
@@ -48,7 +51,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       toast({
         title: "数量を更新しました",
-        description: `${product.name}${color || size ? ` (${[color, size].filter(Boolean).join(" / ")})` : ""} を${item.quantity + 1}点に更新しました`,
+        description: `${product.name} ${color ? `(${color}` : ''}${size ? `/${size})` : color ? ')' : ''} を${item.quantity + 1}点に更新しました`,
       });
     } else {
       setItems([
@@ -65,7 +68,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       toast({
         title: "カートに追加しました",
-        description: `${product.name}${color || size ? ` (${[color, size].filter(Boolean).join(" / ")})` : ""} をカートに追加しました`,
+        description: `${product.name} ${color ? `(${color}` : ''}${size ? `/${size})` : color ? ')' : ''} をカートに追加しました`,
       });
     }
   };
@@ -79,7 +82,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
 
     if (itemToRemove) {
-      const productName = `${itemToRemove.product.name}${itemToRemove.color || itemToRemove.size ? ` (${[itemToRemove.color, itemToRemove.size].filter(Boolean).join(" / ")})` : ""}`;
+      const productName = `${itemToRemove.product.name} ${itemToRemove.color ? `(${itemToRemove.color}` : ''}${itemToRemove.size ? `/${itemToRemove.size})` : itemToRemove.color ? ')' : ''}`;
 
       setItems(items.filter(item =>
         !(item.productId === productId &&
@@ -95,8 +98,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateQuantity = (product: Product, variantId: string | undefined, quantity: number, color?: string, size?: string) => {
-    const productId = product.id;
+  const updateQuantity = (
+    product: Product,
+    productId: string,
+    variantId: string | undefined,
+    quantity: number,
+    color?: string,
+    size?: string
+  ) => {
+    console.log("updateQuantity 呼び出し", { productId, variantId, quantity, color, size });
 
     if (quantity > 2) {
       toast({
@@ -114,6 +124,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       ((!variantId && !item.variantId) || item.variantId === variantId)
     );
 
+    console.log("itemToUpdate:", itemToUpdate);
+
     if (quantity <= 0) {
       if (itemToUpdate) {
         removeFromCart(productId, variantId, color, size);
@@ -122,7 +134,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     if (itemToUpdate) {
-      const productName = `${itemToUpdate.product.name}${itemToUpdate.color || itemToUpdate.size ? ` (${[itemToUpdate.color, itemToUpdate.size].filter(Boolean).join(" / ")})` : ""}`;
+      const productName = `${itemToUpdate.product.name} ${itemToUpdate.color ? `(${itemToUpdate.color}` : ''}${itemToUpdate.size ? `/${itemToUpdate.size})` : itemToUpdate.color ? ')' : ''}`;
 
       setItems(items.map(item => {
         if (
@@ -141,23 +153,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         description: `${productName} を${quantity}点に更新しました`,
       });
     } else {
-      // 該当商品がなければ新しく追加（初回数量を反映）
-      setItems([
-        ...items,
-        {
-          productId,
-          variantId,
-          quantity,
-          product,
-          color,
-          size
-        }
-      ]);
-
-      toast({
-        title: "カートに追加しました",
-        description: `${product.name}${color || size ? ` (${[color, size].filter(Boolean).join(" / ")})` : ""} を${quantity}点に追加しました`,
-      });
+      addToCart(product, variantId, color, size);
     }
   };
 
