@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -93,7 +92,8 @@ export function ProductsPage({ onGoToCheckout }: ProductsPageProps) {
         </div>
       </div>
       
-      <div className="mb-8">
+      {/* 商品タイプ選択の UI を非表示 */}
+      <div className="mb-8 hidden">
         <ProductFilter 
           selectedType={selectedType} 
           onTypeChange={setSelectedType} 
