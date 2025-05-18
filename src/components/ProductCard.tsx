@@ -45,6 +45,13 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
+  // 選択が必要かつ未選択の場合にボタンを無効化する条件
+  const isColorRequired = colorOptions.length > 0;
+  const isSizeRequired = sizeOptions.length > 0;
+  const isColorSelected = !isColorRequired || selectedColor;
+  const isSizeSelected = !isSizeRequired || selectedSize;
+  const isButtonDisabled = quantity <= 0 || !isColorSelected || !isSizeSelected;
+
   return (
     <div className="border rounded-md p-4 flex flex-col items-center">
       <img
@@ -104,7 +111,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <Button
         onClick={handleAddToCart}
         className="mt-2 bg-manga-primary hover:bg-manga-secondary w-full"
-        disabled={quantity <= 0}
+        disabled={isButtonDisabled}
       >
         カートに入れる
       </Button>
