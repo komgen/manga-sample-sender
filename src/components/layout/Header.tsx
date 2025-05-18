@@ -1,4 +1,5 @@
-import Link from "next/link";
+
+import { Link } from "react-router-dom";
 
 export function Header() {
   return (
@@ -6,7 +7,9 @@ export function Header() {
       <div className="container mx-auto py-4">
         {/* サイト全体のタイトルを変更 */}
         <h1 className="text-xl font-bold">
-          UKSSS-01（宇宙兄弟サンプル送付システム）
+          <Link to="/" className="hover:underline">
+            UKSSS-01（宇宙兄弟サンプル送付システム）
+          </Link>
         </h1>
       </div>
     </header>
