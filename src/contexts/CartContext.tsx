@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { CartItem, Product } from '@/types/product';
 import { useToast } from '@/components/ui/use-toast';
@@ -107,7 +108,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       quantity = 2;
     }
 
-    const itemToUpdate = items.find(item =>
+    // Find if the item already exists in the cart
+    const existingItemIndex = items.findIndex(item =>
       item.productId === productId &&
       item.color === color &&
       item.size === size &&
@@ -115,33 +117,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
 
     if (quantity <= 0) {
-      if (itemToUpdate) {
+      // If quantity is 0 or negative, remove the item if it exists
+      if (existingItemIndex !== -1) {
         removeFromCart(productId, variantId, color, size);
       }
       return;
     }
 
-    if (itemToUpdate) {
+    if (existingItemIndex !== -1) {
+      // Update existing item quantity
+      const updatedItems = [...items];
+      const itemToUpdate = updatedItems[existingItemIndex];
       const productName = `${itemToUpdate.product.name}${itemToUpdate.color || itemToUpdate.size ? ` (${[itemToUpdate.color, itemToUpdate.size].filter(Boolean).join(" / ")})` : ""}`;
 
-      setItems(items.map(item => {
-        if (
-          item.productId === productId &&
-          item.color === color &&
-          item.size === size &&
-          ((!variantId && !item.variantId) || item.variantId === variantId)
-        ) {
-          return { ...item, quantity };
-        }
-        return item;
-      }));
+      updatedItems[existingItemIndex] = {
+        ...itemToUpdate,
+        quantity: quantity
+      };
+
+      setItems(updatedItems);
 
       toast({
         title: "数量を更新しました",
         description: `${productName} を${quantity}点に更新しました`,
       });
     } else {
-      // 該当商品がなければ新しく追加（初回数量を反映）
+      // Add new item with specified quantity
       setItems([
         ...items,
         {
@@ -156,7 +157,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       toast({
         title: "カートに追加しました",
-        description: `${product.name}${color || size ? ` (${[color, size].filter(Boolean).join(" / ")})` : ""} を${quantity}点に追加しました`,
+        description: `${product.name}${color || size ? ` (${[color, size].filter(Boolean).join(" / ")})` : ""} を${quantity}点追加しました`,
       });
     }
   };

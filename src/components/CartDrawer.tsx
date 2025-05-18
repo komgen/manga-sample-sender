@@ -1,3 +1,4 @@
+
 import {
   Drawer,
   DrawerClose,
@@ -10,11 +11,11 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { Input } from "@/components/ui/input";
 import { MinusIcon, PlusIcon, ShoppingCart, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { QuantitySelector } from "@/components/product/QuantitySelector";
 
 interface CartDrawerProps {
   onCheckout: () => void;
@@ -34,6 +35,16 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
       return;
     }
     onCheckout();
+  };
+
+  const handleUpdateQuantity = (item: any, newQuantity: number) => {
+    updateQuantity(
+      item.product,
+      item.variantId,
+      newQuantity,
+      item.color,
+      item.size
+    );
   };
 
   return (
@@ -84,61 +95,13 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                       )}
                     </div>
 
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() =>
-                          updateQuantity(
-                            item.product,
-                            item.productId,
-                            item.variantId,
-                            item.quantity - 1,
-                            item.color,
-                            item.size
-                          )
-                        }
-                      >
-                        <MinusIcon className="h-4 w-4" />
-                      </Button>
-
-                      <Input
-                        type="number"
-                        min={0}
-                        max={2}
-                        value={item.quantity}
-                        onChange={(e) =>
-                          updateQuantity(
-                            item.product,
-                            item.productId,
-                            item.variantId,
-                            parseInt(e.target.value, 10) || 0,
-                            item.color,
-                            item.size
-                          )
-                        }
-                        className="h-8 w-12 text-center"
+                    <div className="flex items-center space-x-2">
+                      <QuantitySelector
+                        quantity={item.quantity}
+                        onUpdateQuantity={(newQuantity) => handleUpdateQuantity(item, newQuantity)}
+                        maxQuantity={2}
                       />
-
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() =>
-                          updateQuantity(
-                            item.product,
-                            item.productId,
-                            item.variantId,
-                            item.quantity + 1,
-                            item.color,
-                            item.size
-                          )
-                        }
-                      >
-                        <PlusIcon className="h-4 w-4" />
-                      </Button>
-
+                      
                       <Button
                         variant="ghost"
                         size="icon"

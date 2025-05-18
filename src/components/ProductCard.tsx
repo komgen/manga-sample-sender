@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Product } from "@/types/product";
 import {
@@ -10,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { parseProductOptions } from "@/utils/productUtils";
+import { QuantitySelector } from "@/components/product/QuantitySelector";
 
 interface ProductCardProps {
   product: Product;
@@ -20,7 +22,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
 
-  const { addToCart, updateQuantity, removeFromCart } = useCart();
+  const { addToCart, updateQuantity } = useCart();
 
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
   const sizeOptions = product.size ? parseProductOptions(product.size) : [];
@@ -33,16 +35,13 @@ export function ProductCard({ product }: ProductCardProps) {
     setSelectedSize(value);
   };
 
-  const handleQuantityChange = (value: string) => {
-    const newQuantity = parseInt(value, 10);
+  const handleQuantityUpdate = (newQuantity: number) => {
     setQuantity(newQuantity);
   };
 
   const handleAddToCart = () => {
-    if (quantity === 0) {
-      removeFromCart(product.id, undefined, selectedColor, selectedSize);
-    } else {
-      updateQuantity(product, product.id, undefined, quantity, selectedColor, selectedSize);
+    if (quantity > 0) {
+      updateQuantity(product, undefined, quantity, selectedColor, selectedSize);
     }
   };
 
@@ -95,22 +94,17 @@ export function ProductCard({ product }: ProductCardProps) {
       )}
 
       <div className="w-full mb-2">
-        <div className="mb-1">数量:</div>
-        <Select value={quantity.toString()} onValueChange={handleQuantityChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="数量を選択" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="0">0</SelectItem>
-            <SelectItem value="1">1</SelectItem>
-            <SelectItem value="2">2</SelectItem>
-          </SelectContent>
-        </Select>
+        <QuantitySelector 
+          quantity={quantity} 
+          onUpdateQuantity={handleQuantityUpdate} 
+          maxQuantity={2}
+        />
       </div>
 
       <Button
         onClick={handleAddToCart}
         className="mt-2 bg-manga-primary hover:bg-manga-secondary w-full"
+        disabled={quantity <= 0}
       >
         カートに入れる
       </Button>
