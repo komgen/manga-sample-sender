@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { parseProductOptions } from "@/utils/productUtils";
+import { parseProductOptions, parseColorImages } from "@/utils/productUtils";
 import { QuantitySelector } from "@/components/product/QuantitySelector";
+import { ProductImage } from "@/components/product/ProductImage";
 
 interface ProductCardProps {
   product: Product;
@@ -21,14 +22,24 @@ export function ProductCard({ product }: ProductCardProps) {
   const [quantity, setQuantity] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
+  const [currentImage, setCurrentImage] = useState<string>(product.image);
 
   const { addToCart, updateQuantity } = useCart();
 
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
   const sizeOptions = product.size ? parseProductOptions(product.size) : [];
+  const colorImages = product.color_images ? parseColorImages(product.color_images) : {};
 
   const handleColorChange = (value: string) => {
     setSelectedColor(value);
+    
+    // 選択したカラーに対応する画像があれば、それに切り替える
+    if (colorImages[value]) {
+      setCurrentImage(colorImages[value]);
+    } else {
+      // 対応する画像がなければデフォルトに戻す
+      setCurrentImage(product.image);
+    }
   };
 
   const handleSizeChange = (value: string) => {
@@ -54,10 +65,9 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div className="border rounded-md p-4 flex flex-col items-center">
-      <img
-        src={product.image}
+      <ProductImage 
+        src={currentImage}
         alt={product.name}
-        className="w-full h-auto object-contain mb-2"
       />
       <h3 className="text-lg font-medium text-center">{product.name}</h3>
       <p className="text-sm text-muted-foreground text-center mb-1">

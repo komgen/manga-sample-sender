@@ -1,4 +1,3 @@
-
 export interface Product {
   id: string;
   name: string;
@@ -9,6 +8,7 @@ export interface Product {
   variants?: Variant[];
   color?: string; // New field for comma-separated colors
   size?: string;  // New field for comma-separated sizes
+  color_images?: string; // JSON string mapping colors to image URLs
 }
 
 export interface Variant {
