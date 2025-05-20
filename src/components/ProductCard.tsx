@@ -29,15 +29,24 @@ export function ProductCard({ product }: ProductCardProps) {
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
   const sizeOptions = product.size ? parseProductOptions(product.size) : [];
   const colorImages = product.color_images ? parseColorImages(product.color_images) : {};
+  
+  // デバッグ用ログ：データの確認
+  console.log('商品データ:', product.name);
+  console.log('カラーオプション:', colorOptions);
+  console.log('カラー画像マッピング:', colorImages);
+  console.log('color_images raw:', product.color_images);
 
   const handleColorChange = (value: string) => {
+    console.log('選択されたカラー:', value);
     setSelectedColor(value);
     
     // 選択したカラーに対応する画像があれば、それに切り替える
-    if (colorImages[value]) {
+    if (colorImages && colorImages[value]) {
+      console.log(`${value}のカラー画像を適用:`, colorImages[value]);
       setCurrentImage(colorImages[value]);
     } else {
       // 対応する画像がなければデフォルトに戻す
+      console.log('選択カラーの画像が見つからないため、デフォルト画像に戻します');
       setCurrentImage(product.image);
     }
   };
