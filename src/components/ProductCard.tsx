@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Product } from "@/types/product";
 import {
   Select,
@@ -13,6 +13,7 @@ import { useCart } from "@/contexts/CartContext";
 import { parseProductOptions, parseColorImages } from "@/utils/productUtils";
 import { QuantitySelector } from "@/components/product/QuantitySelector";
 import { ProductImage } from "@/components/product/ProductImage";
+import { ProductOptions } from "@/components/product/ProductOptions";
 
 interface ProductCardProps {
   product: Product;
@@ -39,14 +40,22 @@ export function ProductCard({ product }: ProductCardProps) {
   const handleColorChange = (value: string) => {
     console.log('選択されたカラー:', value);
     setSelectedColor(value);
-    
-    // 選択したカラーに対応する画像があれば、それに切り替える
-    if (colorImages && colorImages[value]) {
-      console.log(`${value}のカラー画像を適用:`, colorImages[value]);
-      setCurrentImage(colorImages[value]);
+    updateProductImage(value);
+  };
+  
+  // 画像更新ロジックを別関数に抽出
+  const updateProductImage = (color: string) => {
+    if (color && colorImages && Object.keys(colorImages).length > 0) {
+      console.log('利用可能なカラー画像:', Object.keys(colorImages));
+      if (colorImages[color]) {
+        console.log(`${color}のカラー画像を適用:`, colorImages[color]);
+        setCurrentImage(colorImages[color]);
+      } else {
+        console.log(`${color}の画像が見つかりません。デフォルト画像に戻します`);
+        setCurrentImage(product.image);
+      }
     } else {
-      // 対応する画像がなければデフォルトに戻す
-      console.log('選択カラーの画像が見つからないため、デフォルト画像に戻します');
+      console.log('カラー画像マッピングが空か未定義です');
       setCurrentImage(product.image);
     }
   };
@@ -64,6 +73,15 @@ export function ProductCard({ product }: ProductCardProps) {
       updateQuantity(product, undefined, quantity, selectedColor, selectedSize);
     }
   };
+
+  // カラーオプションが1つ以上ある場合、最初のカラーを自動選択
+  useEffect(() => {
+    if (colorOptions.length > 0 && !selectedColor) {
+      const firstColor = colorOptions[0];
+      setSelectedColor(firstColor);
+      updateProductImage(firstColor);
+    }
+  }, [colorOptions]);
 
   // 選択が必要かつ未選択の場合にボタンを無効化する条件
   const isColorRequired = colorOptions.length > 0;
