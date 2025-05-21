@@ -1,4 +1,4 @@
-
+// src/components/ProductCard.tsx
 import { useState } from "react";
 import { Product } from "@/types/product";
 import {
@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { parseProductOptions, parseColorImages, parseProductImages } from "@/utils/productUtils";
-import { QuantitySelector } from "@/components/product/QuantitySelector";
+import { parseProductOptions, parseProductImages } from "@/utils/productUtils";
 import { ProductImageCarousel } from "@/components/product/ProductImageCarousel";
 
 interface ProductCardProps {
@@ -19,71 +18,62 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  // 色・サイズ・数量の state
+  const [selectedColor, setSelectedColor] = useState<string | undefined>();
+  const [selectedSize, setSelectedSize] = useState<string | undefined>();
   const [quantity, setQuantity] = useState(0);
-  const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
-  const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
 
-  const { addToCart, updateQuantity } = useCart();
+  const { updateQuantity } = useCart();
 
-  const colorOptions = product.color ? parseProductOptions(product.color) : [];
-  const sizeOptions = product.size ? parseProductOptions(product.size) : [];
-  
-  // 商品画像配列を取得
-  const productImages = product.images 
-    ? parseProductImages(product.images) 
-    : product.image ? [product.image] : ['/placeholder.svg'];
-  
-  // デバッグ用ログ：データの確認
-  console.log('商品データ:', product.name);
-  console.log('商品画像配列:', productImages);
+  // 文字列から選択肢配列を作るユーティリティ
+  const colorOptions = product.color
+    ? parseProductOptions(product.color)
+    : [];
+  const sizeOptions = product.size
+    ? parseProductOptions(product.size)
+    : [];
+  // 画像配列（カルーセル用）
+  const images = parseProductImages(product.images || product.image);
 
-  const handleColorChange = (value: string) => {
-    setSelectedColor(value);
+  // 数量変更ハンドラ
+  const handleQuantityChange = (v: string) => {
+    const q = parseInt(v, 10);
+    setQuantity(q);
   };
 
-  const handleSizeChange = (value: string) => {
-    setSelectedSize(value);
-  };
-
-  const handleQuantityUpdate = (newQuantity: number) => {
-    setQuantity(newQuantity);
-  };
-
+  // 「カートに入れる」または「数量更新」処理
   const handleAddToCart = () => {
-    if (quantity > 0) {
-      updateQuantity(product, undefined, quantity, selectedColor, selectedSize);
-    }
+    updateQuantity(
+      product,          // Productオブジェクト
+      undefined,        // variantId は今回は未使用
+      quantity,         // 選択数量
+      selectedColor,    // 色
+      selectedSize      // サイズ
+    );
   };
-
-  // 選択が必要かつ未選択の場合にボタンを無効化する条件
-  const isColorRequired = colorOptions.length > 0;
-  const isSizeRequired = sizeOptions.length > 0;
-  const isColorSelected = !isColorRequired || selectedColor;
-  const isSizeSelected = !isSizeRequired || selectedSize;
-  const isButtonDisabled = quantity <= 0 || !isColorSelected || !isSizeSelected;
 
   return (
     <div className="border rounded-md p-4 flex flex-col items-center">
-      <ProductImageCarousel 
-        images={productImages}
-        alt={product.name}
-      />
+      {/* カルーセル画像 */}
+      <ProductImageCarousel images={images} alt={product.name} />
+
       <h3 className="text-lg font-medium text-center">{product.name}</h3>
       <p className="text-sm text-muted-foreground text-center mb-1">
         {product.description}
       </p>
 
+      {/* カラー選択 */}
       {colorOptions.length > 0 && (
         <div className="w-full mb-2">
           <div className="mb-1">カラー:</div>
-          <Select value={selectedColor} onValueChange={handleColorChange}>
+          <Select value={selectedColor} onValueChange={setSelectedColor}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="選択してください" />
             </SelectTrigger>
             <SelectContent>
-              {colorOptions.map((color) => (
-                <SelectItem key={color} value={color}>
-                  {color}
+              {colorOptions.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -91,17 +81,18 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       )}
 
+      {/* サイズ選択 */}
       {sizeOptions.length > 0 && (
         <div className="w-full mb-2">
           <div className="mb-1">サイズ:</div>
-          <Select value={selectedSize} onValueChange={handleSizeChange}>
+          <Select value={selectedSize} onValueChange={setSelectedSize}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="選択してください" />
             </SelectTrigger>
             <SelectContent>
-              {sizeOptions.map((size) => (
-                <SelectItem key={size} value={size}>
-                  {size}
+              {sizeOptions.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -109,18 +100,29 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       )}
 
+      {/* 数量プルダウン (0 を選ぶとカートから削除) */}
       <div className="w-full mb-2">
-        <QuantitySelector 
-          quantity={quantity} 
-          onUpdateQuantity={handleQuantityUpdate} 
-          maxQuantity={2}
-        />
+        <div className="mb-1">数量:</div>
+        <Select
+          value={quantity.toString()}
+          onValueChange={handleQuantityChange}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="数量を選択" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">0</SelectItem>
+            <SelectItem value="1">1</SelectItem>
+            <SelectItem value="2">2</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
+      {/* カート投入ボタン */}
       <Button
         onClick={handleAddToCart}
         className="mt-2 bg-manga-primary hover:bg-manga-secondary w-full"
-        disabled={isButtonDisabled}
+        disabled={quantity === 0}
       >
         カートに入れる
       </Button>
