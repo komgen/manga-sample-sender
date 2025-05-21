@@ -64,3 +64,28 @@ export function parseColorImages(jsonString?: string): Record<string, string> {
     }
   }
 }
+
+/**
+ * Parse product images string into an array of image URLs
+ */
+export function parseProductImages(imagesString?: string): string[] {
+  if (!imagesString) return [];
+  
+  try {
+    // JSON配列形式かどうかをチェック
+    if (imagesString.trim().startsWith('[')) {
+      const images = JSON.parse(imagesString);
+      if (Array.isArray(images)) {
+        return images.filter(url => typeof url === 'string' && url.trim() !== '');
+      }
+    }
+    
+    // カンマ区切り形式と判断
+    return imagesString.split(',').map(url => url.trim()).filter(Boolean);
+  } catch (error) {
+    console.error('商品画像の解析に失敗しました:', error);
+    
+    // JSONパースに失敗した場合、単純にカンマ区切りで試行
+    return imagesString.split(',').map(url => url.trim()).filter(Boolean);
+  }
+}

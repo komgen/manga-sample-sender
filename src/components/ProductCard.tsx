@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Product } from "@/types/product";
 import {
   Select,
@@ -10,10 +10,9 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { parseProductOptions, parseColorImages } from "@/utils/productUtils";
+import { parseProductOptions, parseColorImages, parseProductImages } from "@/utils/productUtils";
 import { QuantitySelector } from "@/components/product/QuantitySelector";
-import { ProductImage } from "@/components/product/ProductImage";
-import { ProductOptions } from "@/components/product/ProductOptions";
+import { ProductImageCarousel } from "@/components/product/ProductImageCarousel";
 
 interface ProductCardProps {
   product: Product;
@@ -23,41 +22,23 @@ export function ProductCard({ product }: ProductCardProps) {
   const [quantity, setQuantity] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
-  const [currentImage, setCurrentImage] = useState<string>(product.image);
 
   const { addToCart, updateQuantity } = useCart();
 
   const colorOptions = product.color ? parseProductOptions(product.color) : [];
   const sizeOptions = product.size ? parseProductOptions(product.size) : [];
-  const colorImages = product.color_images ? parseColorImages(product.color_images) : {};
+  
+  // 商品画像配列を取得
+  const productImages = product.images 
+    ? parseProductImages(product.images) 
+    : product.image ? [product.image] : ['/placeholder.svg'];
   
   // デバッグ用ログ：データの確認
   console.log('商品データ:', product.name);
-  console.log('カラーオプション:', colorOptions);
-  console.log('カラー画像マッピング:', colorImages);
-  console.log('color_images raw:', product.color_images);
+  console.log('商品画像配列:', productImages);
 
   const handleColorChange = (value: string) => {
-    console.log('選択されたカラー:', value);
     setSelectedColor(value);
-    updateProductImage(value);
-  };
-  
-  // 画像更新ロジックを別関数に抽出
-  const updateProductImage = (color: string) => {
-    if (color && colorImages && Object.keys(colorImages).length > 0) {
-      console.log('利用可能なカラー画像:', Object.keys(colorImages));
-      if (colorImages[color]) {
-        console.log(`${color}のカラー画像を適用:`, colorImages[color]);
-        setCurrentImage(colorImages[color]);
-      } else {
-        console.log(`${color}の画像が見つかりません。デフォルト画像に戻します`);
-        setCurrentImage(product.image);
-      }
-    } else {
-      console.log('カラー画像マッピングが空か未定義です');
-      setCurrentImage(product.image);
-    }
   };
 
   const handleSizeChange = (value: string) => {
@@ -74,9 +55,6 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  // 自動で最初のカラーを選択する機能を削除
-  // このuseEffectを削除し、ユーザーの選択を待つようにする
-
   // 選択が必要かつ未選択の場合にボタンを無効化する条件
   const isColorRequired = colorOptions.length > 0;
   const isSizeRequired = sizeOptions.length > 0;
@@ -86,8 +64,8 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div className="border rounded-md p-4 flex flex-col items-center">
-      <ProductImage 
-        src={currentImage}
+      <ProductImageCarousel 
+        images={productImages}
         alt={product.name}
       />
       <h3 className="text-lg font-medium text-center">{product.name}</h3>
