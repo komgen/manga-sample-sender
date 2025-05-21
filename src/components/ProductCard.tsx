@@ -74,14 +74,8 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  // カラーオプションが1つ以上ある場合、最初のカラーを自動選択
-  useEffect(() => {
-    if (colorOptions.length > 0 && !selectedColor) {
-      const firstColor = colorOptions[0];
-      setSelectedColor(firstColor);
-      updateProductImage(firstColor);
-    }
-  }, [colorOptions]);
+  // 自動で最初のカラーを選択する機能を削除
+  // このuseEffectを削除し、ユーザーの選択を待つようにする
 
   // 選択が必要かつ未選択の場合にボタンを無効化する条件
   const isColorRequired = colorOptions.length > 0;
